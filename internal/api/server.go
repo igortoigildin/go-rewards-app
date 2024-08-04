@@ -1,4 +1,4 @@
-package server
+package api
 
 import (
 	"context"
@@ -10,24 +10,21 @@ import (
 )
 
 func RunServer() {
-	_ = initialize()
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/user/register", registerUser)
-}
-
-// Init logger and load config
-func initialize() *config.Config {
+	ctx := context.Background()
 	cfg := config.LoadConfig()
+
 	if err := logger.Initialize(cfg.FlagLogLevel); err != nil {
 		logger.Log.Info("error while initializing logger", zap.Error(err))
 	}
-	return cfg
+
+	err := http.ListenAndServe(cfg.FlagRunAddr, router(ctx, cfg))
+	if err != nil {
+		logger.Log.Fatal("cannot start server", zap.Error(err))
+	}
 }
 
-func registerUser(rw http.ResponseWriter, r *http.Request) {
+func registerUserHandler(rw http.ResponseWriter, r *http.Request) {
 	_, cancel := context.WithCancel(r.Context())
 	defer cancel()
-
 
 }

@@ -1,7 +1,7 @@
 package main
 
-import "github.com/igortoigildin/go-rewards-app/internal/server"
+import api "github.com/igortoigildin/go-rewards-app/internal/api"
 
 func main() {
-	server.RunServer()
+	api.RunServer()
 }
