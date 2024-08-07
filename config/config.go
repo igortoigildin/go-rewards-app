@@ -2,20 +2,21 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"os"
 )
 
 type Config struct {
-	FlagRunAddr    string
-	FlagDBURI      string
-	FlagAccSysAddr string
+	FlagRunAddr    string // address and port to run server
+	FlagDBURI      string // driver-specific data source name, usually consisting of at least a database name and connection information.
+	FlagAccSysAddr string // accrual system address
 	FlagLogLevel   string
 }
 
 func LoadConfig() *Config {
 	cfg := new(Config)
 	flag.StringVar(&cfg.FlagRunAddr, "a", ":8080", "address and port to run server")
-	flag.StringVar(&cfg.FlagDBURI, "d", "", "DATABASE URI")
+	flag.StringVar(&cfg.FlagDBURI, "d", DefaultPostgresConfig().String(), "DATABASE URI")
 	flag.StringVar(&cfg.FlagAccSysAddr, "r", "", "accrual system address")
 	flag.StringVar(&cfg.FlagLogLevel, "l", "info", "log level")
 	flag.Parse()
@@ -32,4 +33,32 @@ func LoadConfig() *Config {
 		cfg.FlagLogLevel = envLogLevel
 	}
 	return cfg
+}
+
+func DefaultPostgresConfig() PostgresConfig {
+	return PostgresConfig{
+		Host: "localhost",
+		Port: "5432",
+		User: "igortoigildin",
+		Password: "Igor109112",
+		Database: "rewards",
+		SSLMode: "disable",
+	}
+	
+}
+
+//const conString = "postgres://igortoigildin:Igor109112@localhost:5432/rewards";
+
+type PostgresConfig struct {
+	Host string
+	Port string
+	User string
+	Password string
+	Database string
+	SSLMode string
+}
+
+func (cfg PostgresConfig) String() string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+	cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode)
 }

@@ -1,16 +1,10 @@
-package models
+package user
 
 import (
 	"errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-type User struct {
-	ID       int64    `json:"id"`
-	Login    string   `json:"login"`
-	Password Password `json:"-"`
-}
 
 type Password struct {
 	Plaintext *string

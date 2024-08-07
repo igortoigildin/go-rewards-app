@@ -1,8 +1,28 @@
 package storage
 
-import "github.com/igortoigildin/go-rewards-app/internal/models"
+import (
+	"context"
+	"errors"
 
-type Storage interface {
-	CreateUser(user *models.User) error
-	GetUserByLogin(login string) (*models.User, error)
+	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
+)
+
+var (
+	ErrDuplicateLogin = errors.New("duplicate login")
+	ErrRecordNotFound = errors.New("no records found")
+)
+
+type UserRepository interface {
+	Create(ctx context.Context, user *userEntity.User) error
+	Find(ctx context.Context, login string) (*userEntity.User, error)
+}
+
+type TokenRepository interface {
+	Insert(ctx context.Context, token *userEntity.Token) error
+}
+
+// Repository storage of all repositories.
+type Repository struct {
+	User  UserRepository
+	Token TokenRepository
 }
