@@ -39,15 +39,12 @@ func DefaultPostgresConfig() PostgresConfig {
 	return PostgresConfig{
 		Host: "localhost",
 		Port: "5432",
-		User: "igortoigildin",
-		Password: "Igor109112",
+		User: "",
+		Password: "",
 		Database: "rewards",
 		SSLMode: "disable",
 	}
-	
 }
-
-//const conString = "postgres://igortoigildin:Igor109112@localhost:5432/rewards";
 
 type PostgresConfig struct {
 	Host string

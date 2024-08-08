@@ -14,6 +14,7 @@ type UserService interface {
 
 type TokenService interface {
 	NewToken(ctx context.Context, userID int64, ttl time.Duration) (*userEntity.Token, error)
+	FindUserByToken(tokenHash []byte) (*userEntity.User, error)
 }
 
 // Service storage of all services.

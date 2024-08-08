@@ -25,6 +25,10 @@ func (t *TokenService) NewToken(ctx context.Context, userID int64, ttl time.Dura
 	return token, err
 }
 
+func (t *TokenService) FindUserByToken(tokenHash []byte) (*userEntity.User, error) {
+	return t.TokenRepository.FindUserByToken(tokenHash)
+}
+
 func generateToken(useID int64, ttl time.Duration) (*userEntity.Token, error) {
 	token := &userEntity.Token{
 		UserID: useID,
