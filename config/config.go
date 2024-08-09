@@ -37,25 +37,25 @@ func LoadConfig() *Config {
 
 func DefaultPostgresConfig() PostgresConfig {
 	return PostgresConfig{
-		Host: "localhost",
-		Port: "5432",
-		User: "",
+		Host:     "localhost",
+		Port:     "5432",
+		User:     "",
 		Password: "",
 		Database: "rewards",
-		SSLMode: "disable",
+		SSLMode:  "disable",
 	}
 }
 
 type PostgresConfig struct {
-	Host string
-	Port string
-	User string
+	Host     string
+	Port     string
+	User     string
 	Password string
 	Database string
-	SSLMode string
+	SSLMode  string
 }
 
 func (cfg PostgresConfig) String() string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-	cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode)
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Database, cfg.SSLMode)
 }

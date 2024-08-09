@@ -22,6 +22,11 @@ type TokenRepository interface {
 	FindUserByToken(tokenHash []byte) (*userEntity.User, error)
 }
 
+type OrderRepository interface {
+	SaveOrder(ctx context.Context, orderNumber int) (int64, error)
+	FindAllOrdersForUser(userID int) ()
+}
+
 // Repository storage of all repositories.
 type Repository struct {
 	User  UserRepository

@@ -22,11 +22,11 @@ func (app *app) auth(next http.HandlerFunc) http.HandlerFunc {
 				logger.Log.Info("cookies cannot be read")
 				w.WriteHeader(http.StatusInternalServerError)
 			}
-			return 
+			return
 		}
-		plaintext := cookie.Value 
+		plaintext := cookie.Value
 		hash := sha256.Sum256([]byte(plaintext))
-		_, err = app.services.TokenService.FindUserByToken(hash[:])
+		user, err := app.services.TokenService.FindUserByToken(hash[:])
 		if err != nil {
 			switch {
 			case errors.Is(err, storage.ErrRecordNotFound):
@@ -37,6 +37,8 @@ func (app *app) auth(next http.HandlerFunc) http.HandlerFunc {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 		}
+
+		r = app.contextSetUser(r, user)
 		next.ServeHTTP(w, r)
 	})
 }

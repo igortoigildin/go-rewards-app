@@ -72,15 +72,14 @@ func (app *app) registerUserHandler(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusInternalServerError)
 	}
 
-	// Initialize a new cookie containing the new token create 
+	// Initialize a new cookie containing the new token create
 	cookie := http.Cookie{
-		Name: "token",
-		Value: token.Plaintext,
-		Expires: token.Expiry,
+		Name:     "token",
+		Value:    token.Plaintext,
+		Expires:  token.Expiry,
 		HttpOnly: true,
 	}
 	http.SetCookie(rw, &cookie)
-	
 
 	err = app.writeJSON(rw, http.StatusOK, user, nil)
 	if err != nil {
@@ -89,4 +88,3 @@ func (app *app) registerUserHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-

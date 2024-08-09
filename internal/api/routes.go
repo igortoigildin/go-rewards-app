@@ -12,7 +12,7 @@ func router(services *service.Service, cfg *config.Config) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/user/register", app.registerUserHandler)
 	mux.HandleFunc("POST /api/user/login", app.createAuthTokenHandler)
+	mux.HandleFunc("POST /api/user/orders", app.auth(app.loadOrderHandler))
 
 	return mux
 }
-
