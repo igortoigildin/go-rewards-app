@@ -1,11 +1,10 @@
-package orders
+package order
 
 import (
 	"context"
 	"database/sql"
-	"errors"
 
-	"github.com/igortoigildin/go-rewards-app/internal/storage"
+	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 )
 
 type OrderRepository struct {
@@ -21,23 +20,23 @@ func NewOrderRepository(DB *sql.DB) *OrderRepository {
 
 // SaveOrder method saves new order in Orders table or
 // returns the user_id who already inserted provided order
-func (rep *OrderRepository) SaveOrder(ctx context.Context, orderNumber int) (int64, error) {
-	var user int64
-	firstQuery := `
-	WITH res AS (INSERT INTO orders (number) VALUES ($1, $2, $3, $4) 
-	ON CONFLICT (number) DO NOTHING RETURNING (user_id))
-	SELECT * FROM res`
-	secondQuery := `SELECT user_id FROM orders WHERE number = $5`
-	
-
-	err := rep.DB.QueryRowContext(ctx, firstQuery, orderNumber).Scan(&user)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return -1, storage.ErrRecordNotFound
-		default:
-			return user, err
-		}
+func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
+	var userID int64
+	query := `
+	WITH new_orders AS (INSERT INTO orders (number, status, user_id)
+	VALUES ($1, $2, $3) ON CONFLICT (number) DO NOTHING RETURNING user_id)
+	SELECT COALESCE ((NULL), (SELECT user_id FROM orders WHERE number = $1));
+	`
+	args := []any{
+		order.Number,
+		order.Status,
+		order.UserID,
 	}
-	return user, nil
+
+	err := rep.DB.QueryRowContext(ctx, query, args...).Scan(&userID)
+	if err != nil {
+		return 0, err
+
+	}
+	return userID, nil
 }

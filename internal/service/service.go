@@ -17,8 +17,14 @@ type TokenService interface {
 	FindUserByToken(tokenHash []byte) (*userEntity.User, error)
 }
 
+type OrderService interface {
+	InsertOrder(ctx context.Context, number string, userID int64) (int64, error)
+	ValidateOrder(number string) (bool, error)
+}
+
 // Service storage of all services.
 type Service struct {
 	UserService  UserService
 	TokenService TokenService
+	OrderService OrderService
 }

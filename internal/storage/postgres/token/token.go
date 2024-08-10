@@ -30,10 +30,10 @@ func (rep *TokenRepository) Insert(ctx context.Context, token *userEntity.Token)
 
 func (rep *TokenRepository) FindUserByToken(tokenHash []byte) (*userEntity.User, error) {
 	query := `
-	SELECT users.id, users.login, users.password_hash 
+	SELECT users.user_id, users.login, users.password_hash 
 	FROM users
 	INNER JOIN tokens
-	ON users.id = tokens.user_id
+	ON users.user_id = tokens.user_id
 	WHERE tokens.hash = $1 
 	AND tokens.expiry > $2`
 

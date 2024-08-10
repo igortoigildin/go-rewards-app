@@ -37,7 +37,7 @@ func (rep *UserRepository) Create(ctx context.Context, user *userEntity.User) er
 func (rep *UserRepository) Find(ctx context.Context, login string) (*userEntity.User, error) {
 	var user userEntity.User
 
-	err := rep.DB.QueryRowContext(ctx, "SELECT id, login, password_hash FROM users WHERE login = $1", login).Scan(
+	err := rep.DB.QueryRowContext(ctx, "SELECT user_id, login, password_hash FROM users WHERE login = $1", login).Scan(
 		&user.ID, &user.Login, &user.Password.Hash,
 	)
 	if err != nil {

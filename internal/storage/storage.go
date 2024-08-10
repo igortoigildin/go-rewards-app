@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
 )
 
@@ -23,12 +24,12 @@ type TokenRepository interface {
 }
 
 type OrderRepository interface {
-	SaveOrder(ctx context.Context, orderNumber int) (int64, error)
-	FindAllOrdersForUser(userID int) ()
+	InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error)
 }
 
 // Repository storage of all repositories.
 type Repository struct {
 	User  UserRepository
 	Token TokenRepository
+	Order OrderRepository
 }
