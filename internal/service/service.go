@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
 )
 
@@ -19,6 +20,7 @@ type TokenService interface {
 
 type OrderService interface {
 	InsertOrder(ctx context.Context, number string, userID int64) (int64, error)
+	SelectAllByUser(ctx context.Context, userID int64) ([]orderEntity.Order, error)
 	ValidateOrder(number string) (bool, error)
 }
 

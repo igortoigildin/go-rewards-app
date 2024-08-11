@@ -18,19 +18,21 @@ func NewOrderRepository(DB *sql.DB) *OrderRepository {
 	}
 }
 
-// SaveOrder method saves new order in Orders table or
-// returns the user_id who already inserted provided order
+// SaveOrder saves new order in db or
+// returns the user id who already saved this order.
+// Returns -1 if added successfully.
 func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
 	var userID int64
 	query := `
-	WITH new_orders AS (INSERT INTO orders (number, status, user_id)
-	VALUES ($1, $2, $3) ON CONFLICT (number) DO NOTHING RETURNING user_id)
-	SELECT COALESCE ((NULL), (SELECT user_id FROM orders WHERE number = $1));
+	WITH new_orders AS (INSERT INTO orders (number, status, user_id, uploaded_at)
+	VALUES ($1, $2, $3, $4) ON CONFLICT (number) DO NOTHING RETURNING user_id)
+	SELECT COALESCE ((-1), (SELECT user_id FROM orders WHERE number = $1));
 	`
 	args := []any{
 		order.Number,
 		order.Status,
 		order.UserID,
+		order.Uploaded_at,
 	}
 
 	err := rep.DB.QueryRowContext(ctx, query, args...).Scan(&userID)
@@ -39,4 +41,29 @@ func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.
 
 	}
 	return userID, nil
+}
+
+func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error) {
+	var orders []orderEntity.Order
+	query := `
+	SELECT number, accrual, status, uploaded_at FROM orders WHERE user_id = $1 ORDER BY uploaded_at;`
+
+	rows, err := rep.DB.QueryContext(ctx, query, user)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var order orderEntity.Order
+		err = rows.Scan(&order.Number, &order.Accrual, &order.Status, &order.Uploaded_at)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return orders, nil
 }

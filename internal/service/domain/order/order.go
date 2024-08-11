@@ -17,8 +17,9 @@ type OrderService struct {
 	OrderRepository storage.OrderRepository
 }
 
+// Returns -1 in case of success or returns user id who already added this order.
 func (o *OrderService) InsertOrder(ctx context.Context, number string, userID int64) (int64, error) {
-	t, err := time.Parse(time.RFC3339, time.Now().String())
+	t, err := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	if err != nil {
 		logger.Log.Info("time parsing error", zap.Error(err))
 		return 0, err
@@ -35,6 +36,14 @@ func (o *OrderService) InsertOrder(ctx context.Context, number string, userID in
 		return 0, err
 	}
 	return id, nil
+}
+
+func (o *OrderService) SelectAllByUser(ctx context.Context, userID int64) ([]orderEntity.Order, error) {
+	orders, err := o.OrderRepository.SelectAllByUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return orders, nil
 }
 
 func (o *OrderService) ValidateOrder(number string) (bool, error) {

@@ -25,6 +25,7 @@ type TokenRepository interface {
 
 type OrderRepository interface {
 	InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error)
+	SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error) // TODO
 }
 
 // Repository storage of all repositories.

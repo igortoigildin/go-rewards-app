@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (app *app) InsertOrderHandler(rw http.ResponseWriter, r *http.Request) {
+func (app *app) insertOrderHandler(rw http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
@@ -31,6 +31,7 @@ func (app *app) InsertOrderHandler(rw http.ResponseWriter, r *http.Request) {
 	if err != nil || !valid {
 		logger.Log.Info("error while validating order:", zap.Error(err))
 		rw.WriteHeader(http.StatusUnprocessableEntity)
+		return
 	}
 
 	id, err := app.services.OrderService.InsertOrder(ctx, string(number), user.ID)
@@ -42,6 +43,7 @@ func (app *app) InsertOrderHandler(rw http.ResponseWriter, r *http.Request) {
 			return
 		default:
 			logger.Log.Info("error while inserting order", zap.Error(err))
+			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}
@@ -49,6 +51,10 @@ func (app *app) InsertOrderHandler(rw http.ResponseWriter, r *http.Request) {
 	switch {
 	case id == user.ID:
 		logger.Log.Info("this order already added by this user")
+		rw.WriteHeader(http.StatusOK)
+		return
+	case id == -1:
+		logger.Log.Info("order added successfully")
 		rw.WriteHeader(http.StatusOK)
 		return
 	default:

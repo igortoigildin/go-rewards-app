@@ -22,7 +22,7 @@ func NewUserRepository(DB *sql.DB) *UserRepository {
 
 func (rep *UserRepository) Create(ctx context.Context, user *userEntity.User) error {
 	err := rep.DB.QueryRowContext(ctx, "INSERT INTO users (login, password_hash)"+
-		"VALUES ($1, $2) RETURNING id", user.Login, user.Password.Hash).Scan(&user.ID)
+		"VALUES ($1, $2) RETURNING user_id", user.Login, user.Password.Hash).Scan(&user.ID)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_login_key"`:

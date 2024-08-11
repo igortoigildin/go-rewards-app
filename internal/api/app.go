@@ -80,11 +80,5 @@ func (app *app) registerUserHandler(rw http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	}
 	http.SetCookie(rw, &cookie)
-
-	err = app.writeJSON(rw, http.StatusOK, user, nil)
-	if err != nil {
-		logger.Log.Info("error while encoding response", zap.Error(err))
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	rw.WriteHeader(http.StatusOK)
 }

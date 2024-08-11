@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/igortoigildin/go-rewards-app/config"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
@@ -30,7 +28,7 @@ func RunServer() {
 	defer conn.Close()
 	logger.Log.Info("database connection pool established")
 
-	runMigration(conn)
+	//runMigration(conn)
 
 	repositories := pg.NewRepository(conn)
 	services := domain.NewService(repositories)
@@ -41,21 +39,21 @@ func RunServer() {
 	}
 }
 
-func runMigration(conn *sql.DB) {
-	migrationDriver, err := postgres.WithInstance(conn, &postgres.Config{})
-	if err != nil {
-		logger.Log.Fatal("error performing migration", zap.Error(err))
-	}
+// func runMigration(conn *sql.DB) {
+// 	migrationDriver, err := postgres.WithInstance(conn, &postgres.Config{})
+// 	if err != nil {
+// 		logger.Log.Fatal("error performing migration", zap.Error(err))
+// 	}
 
-	migrator, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", migrationDriver)
-	if err != nil {
-		logger.Log.Fatal("error performing migration", zap.Error(err))
-	}
+// 	migrator, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", migrationDriver)
+// 	if err != nil {
+// 		logger.Log.Fatal("error performing migration", zap.Error(err))
+// 	}
 
-	err = migrator.Up()
-	if err != nil && err != migrate.ErrNoChange {
-		logger.Log.Fatal("error performing migration", zap.Error(err))
-	}
+// 	err = migrator.Up()
+// 	if err != nil && err != migrate.ErrNoChange {
+// 		logger.Log.Fatal("error performing migration", zap.Error(err))
+// 	}
 
-	logger.Log.Info("database migrations applied")
-}
+// 	logger.Log.Info("database migrations applied")
+// }

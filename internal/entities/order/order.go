@@ -5,7 +5,7 @@ import "time"
 type Order struct {
 	Number      string    `json:"number"`
 	Status      string    `json:"status"`
-	Accrual     *int      `json:"accrual"`
+	Accrual     *int      `json:"accrual,omitempty"`
 	Uploaded_at time.Time `json:"date"`
-	UserID      int64     `json:"user_id"`
+	UserID      int64     `json:"user_id,omitempty"`
 }
