@@ -7,6 +7,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/igortoigildin/go-rewards-app/config"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
+	"github.com/igortoigildin/go-rewards-app/internal/service"
 	"github.com/igortoigildin/go-rewards-app/internal/service/domain"
 	pg "github.com/igortoigildin/go-rewards-app/internal/storage/postgres"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -28,32 +29,27 @@ func RunServer() {
 	defer conn.Close()
 	logger.Log.Info("database connection pool established")
 
-	//runMigration(conn)
-
 	repositories := pg.NewRepository(conn)
 	services := domain.NewService(repositories)
 
-	err = http.ListenAndServe(cfg.FlagRunAddr, router(services, cfg))
+	app := newApp(services, cfg)
+
+	go app.services.OrderService.UpdateAccruals(cfg)
+
+	err = http.ListenAndServe(cfg.FlagRunAddr, router(app))
 	if err != nil {
 		logger.Log.Fatal("cannot start server", zap.Error(err))
 	}
 }
 
-// func runMigration(conn *sql.DB) {
-// 	migrationDriver, err := postgres.WithInstance(conn, &postgres.Config{})
-// 	if err != nil {
-// 		logger.Log.Fatal("error performing migration", zap.Error(err))
-// 	}
+type app struct {
+	services service.Service
+	cfg      *config.Config
+}
 
-// 	migrator, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", migrationDriver)
-// 	if err != nil {
-// 		logger.Log.Fatal("error performing migration", zap.Error(err))
-// 	}
-
-// 	err = migrator.Up()
-// 	if err != nil && err != migrate.ErrNoChange {
-// 		logger.Log.Fatal("error performing migration", zap.Error(err))
-// 	}
-
-// 	logger.Log.Info("database migrations applied")
-// }
+func newApp(service *service.Service, cfg *config.Config) *app {
+	return &app{
+		services: *service,
+		cfg:      cfg,
+	}
+}

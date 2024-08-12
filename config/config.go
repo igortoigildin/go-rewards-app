@@ -4,21 +4,25 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 )
 
 type Config struct {
-	FlagRunAddr    string // address and port to run server
-	FlagDBURI      string // driver-specific data source name, usually consisting of at least a database name and connection information.
-	FlagAccSysAddr string // accrual system address
-	FlagLogLevel   string
+	FlagRunAddr         string // address and port to run server
+	FlagDBURI           string // driver-specific data source name, usually consisting of at least a database name and connection information.
+	FlagAccSysAddr      string // accrual system address
+	FlagLogLevel        string
+	FlagAttemptInterval int
+	PauseDuration       time.Duration
 }
 
 func LoadConfig() *Config {
 	cfg := new(Config)
-	flag.StringVar(&cfg.FlagRunAddr, "a", ":8080", "address and port to run server")
+	flag.StringVar(&cfg.FlagRunAddr, "a", ":8081", "address and port to run server")
 	flag.StringVar(&cfg.FlagDBURI, "d", DefaultPostgresConfig().String(), "DATABASE URI")
 	flag.StringVar(&cfg.FlagAccSysAddr, "r", "", "accrual system address")
 	flag.StringVar(&cfg.FlagLogLevel, "l", "info", "log level")
+	flag.IntVar(&cfg.FlagAttemptInterval, "i", 5, "frequency of orders being sent for accrual calculation")
 	flag.Parse()
 	if envRunAddr := os.Getenv("RUN_ADDRESS"); envRunAddr != "" {
 		cfg.FlagRunAddr = envRunAddr
@@ -32,6 +36,7 @@ func LoadConfig() *Config {
 	if envLogLevel := os.Getenv("LOG_LEVEL"); envLogLevel != "" {
 		cfg.FlagLogLevel = envLogLevel
 	}
+	cfg.PauseDuration = time.Duration(cfg.FlagAttemptInterval) * time.Second
 	return cfg
 }
 
@@ -39,8 +44,8 @@ func DefaultPostgresConfig() PostgresConfig {
 	return PostgresConfig{
 		Host:     "localhost",
 		Port:     "5432",
-		User:     "igortoigildin",
-		Password: "Igor109112",
+		User:     "",
+		Password: "",
 		Database: "postgres",
 		SSLMode:  "disable",
 	}

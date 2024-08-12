@@ -6,25 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/igortoigildin/go-rewards-app/config"
-	entities "github.com/igortoigildin/go-rewards-app/internal/entities/user"
+	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
-	"github.com/igortoigildin/go-rewards-app/internal/service"
 	"github.com/igortoigildin/go-rewards-app/internal/storage"
 	"go.uber.org/zap"
 )
-
-type app struct {
-	services service.Service
-	cfg      *config.Config
-}
-
-func newApp(service service.Service, cfg *config.Config) *app {
-	return &app{
-		services: service,
-		cfg:      cfg,
-	}
-}
 
 func (app *app) registerUserHandler(rw http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
@@ -41,7 +27,7 @@ func (app *app) registerUserHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := &entities.User{
+	user := &userEntity.User{
 		Login: input.Login,
 	}
 

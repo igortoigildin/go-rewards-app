@@ -63,3 +63,34 @@ func (app *app) insertOrderHandler(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (app *app) allOrdersHandler(rw http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+
+	user, err := app.contextGetUser(r)
+	if err != nil {
+		logger.Log.Info("missing user info:", zap.Error(err))
+		rw.WriteHeader(http.StatusInternalServerError)
+	}
+
+	orders, err := app.services.OrderService.SelectAllByUser(ctx, user.ID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			rw.WriteHeader(http.StatusNoContent)
+			return
+		default:
+			logger.Log.Info("error requesting orders", zap.Error(err))
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	err = app.writeJSON(rw, http.StatusOK, orders, nil)
+	if err != nil {
+		logger.Log.Info("error while encoding response", zap.Error(err))
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}

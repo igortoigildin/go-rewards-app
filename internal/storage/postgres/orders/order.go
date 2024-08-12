@@ -7,6 +7,11 @@ import (
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 )
 
+const (
+	statusNew        = "NEW"
+	statusProcessing = "PROCESSING"
+)
+
 type OrderRepository struct {
 	DB *sql.DB
 }
@@ -56,6 +61,32 @@ func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]
 	for rows.Next() {
 		var order orderEntity.Order
 		err = rows.Scan(&order.Number, &order.Accrual, &order.Status, &order.Uploaded_at)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+	return orders, nil
+}
+
+// Select numbers of all new orders.
+func (rep *OrderRepository) SelectForCalc() ([]int64, error) {
+	var orders []int64
+	query := `
+	SELECT number FROM orders WHERE status = $1 or status = $2`
+	args := []any{statusNew, statusProcessing}
+	rows, err := rep.DB.Query(query, args)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var order int64
+		err = rows.Scan(&order)
 		if err != nil {
 			return nil, err
 		}
