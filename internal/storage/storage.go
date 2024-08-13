@@ -6,6 +6,7 @@ import (
 
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
+	withdrawalEntity "github.com/igortoigildin/go-rewards-app/internal/entities/withdrawal"
 )
 
 var (
@@ -26,12 +27,19 @@ type TokenRepository interface {
 type OrderRepository interface {
 	InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error)
 	SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error)
-	SelectForCalc() ([]int64, error)
+	SelectForAccrualCalc() ([]int64, error)
+	Update(order *orderEntity.Order) error
+}
+
+type WithdrawalRepository interface {
+	Create(ctx context.Context, withdrawal *withdrawalEntity.Withdrawal) error
+	SelectAllForUserID(ctx context.Context, userID int64) ([]withdrawalEntity.Withdrawal, error)
 }
 
 // Repository storage of all repositories.
 type Repository struct {
-	User  UserRepository
-	Token TokenRepository
-	Order OrderRepository
+	User       UserRepository
+	Token      TokenRepository
+	Order      OrderRepository
+	Withdrawal WithdrawalRepository
 }

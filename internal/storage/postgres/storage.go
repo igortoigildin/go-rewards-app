@@ -7,12 +7,14 @@ import (
 	order "github.com/igortoigildin/go-rewards-app/internal/storage/postgres/orders"
 	"github.com/igortoigildin/go-rewards-app/internal/storage/postgres/token"
 	"github.com/igortoigildin/go-rewards-app/internal/storage/postgres/user"
+	withdrawal "github.com/igortoigildin/go-rewards-app/internal/storage/postgres/withdrawals"
 )
 
 func NewRepository(DB *sql.DB) *storage.Repository {
 	return &storage.Repository{
-		User:  user.NewUserRepository(DB),
-		Token: token.NewTokenRepository(DB),
-		Order: order.NewOrderRepository(DB),
+		User:       user.NewUserRepository(DB),
+		Token:      token.NewTokenRepository(DB),
+		Order:      order.NewOrderRepository(DB),
+		Withdrawal: withdrawal.NewWithdrawalRepository(DB),
 	}
 }

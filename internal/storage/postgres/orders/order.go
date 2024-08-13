@@ -23,6 +23,21 @@ func NewOrderRepository(DB *sql.DB) *OrderRepository {
 	}
 }
 
+func (rep *OrderRepository) Update(order *orderEntity.Order) error {
+	query := `
+	UPDATE orders SET status = $1, accrual = $2 WHERE number = $3`
+	args := []any{
+		order.Status,
+		order.Accrual,
+		order.Number,
+	}
+	_, err := rep.DB.Exec(query, args)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // SaveOrder saves new order in db or
 // returns the user id who already saved this order.
 // Returns -1 if added successfully.
@@ -74,7 +89,7 @@ func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]
 }
 
 // Select numbers of all new orders.
-func (rep *OrderRepository) SelectForCalc() ([]int64, error) {
+func (rep *OrderRepository) SelectForAccrualCalc() ([]int64, error) {
 	var orders []int64
 	query := `
 	SELECT number FROM orders WHERE status = $1 or status = $2`

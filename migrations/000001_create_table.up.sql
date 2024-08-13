@@ -17,3 +17,10 @@ CREATE TABLE IF NOT EXISTS orders (
     accrual INT,
     uploaded_at timestamp
 );
+
+CREATE TABLE IF NOT EXISTS withdrawals (
+    order VARCHAR(15) PRIMARY KEY,
+    sum INT,
+    user_id BIGINT,
+    date timestamp
+);

@@ -13,6 +13,7 @@ type Config struct {
 	FlagAccSysAddr      string // accrual system address
 	FlagLogLevel        string
 	FlagAttemptInterval int
+	FlagRateLimit       int // amount of goroutines being sent to accrual system for recalculation
 	PauseDuration       time.Duration
 }
 
@@ -23,6 +24,7 @@ func LoadConfig() *Config {
 	flag.StringVar(&cfg.FlagAccSysAddr, "r", "", "accrual system address")
 	flag.StringVar(&cfg.FlagLogLevel, "l", "info", "log level")
 	flag.IntVar(&cfg.FlagAttemptInterval, "i", 5, "frequency of orders being sent for accrual calculation")
+	flag.IntVar(&cfg.FlagRateLimit, "c", 5, "frequency of orders being sent for accrual calculation")
 	flag.Parse()
 	if envRunAddr := os.Getenv("RUN_ADDRESS"); envRunAddr != "" {
 		cfg.FlagRunAddr = envRunAddr
