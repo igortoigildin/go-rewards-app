@@ -7,7 +7,11 @@ import (
 	"time"
 
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
-	"github.com/igortoigildin/go-rewards-app/internal/storage"
+)
+
+var (
+	ErrDuplicateLogin = errors.New("duplicate login")
+	ErrRecordNotFound = errors.New("no records found")
 )
 
 type TokenRepository struct {
@@ -51,7 +55,7 @@ func (rep *TokenRepository) FindUserByToken(tokenHash []byte) (*userEntity.User,
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, storage.ErrRecordNotFound
+			return nil, ErrRecordNotFound
 		default:
 			return nil, err
 		}

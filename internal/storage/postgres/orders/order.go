@@ -45,14 +45,13 @@ func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.
 	var userID int64
 	query := `
 	WITH new_orders AS (INSERT INTO orders (number, status, user_id, uploaded_at)
-	VALUES ($1, $2, $3, $4) ON CONFLICT (number) DO NOTHING RETURNING user_id)
+	VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK') ON CONFLICT (number) DO NOTHING RETURNING user_id)
 	SELECT COALESCE ((-1), (SELECT user_id FROM orders WHERE number = $1));
 	`
 	args := []any{
 		order.Number,
 		order.Status,
 		order.UserID,
-		order.Uploaded_at,
 	}
 
 	err := rep.DB.QueryRowContext(ctx, query, args...).Scan(&userID)

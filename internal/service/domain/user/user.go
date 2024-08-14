@@ -5,12 +5,17 @@ import (
 
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
-	"github.com/igortoigildin/go-rewards-app/internal/storage"
 	"go.uber.org/zap"
 )
 
 type UserService struct {
-	UserRepository storage.UserRepository
+	UserRepository UserRepository
+}
+
+func NewUserService(UserRepository UserRepository) *UserService {
+	return &UserService{
+		UserRepository: UserRepository,
+	}
 }
 
 func (u *UserService) Create(ctx context.Context, user *userEntity.User) error {
@@ -28,11 +33,4 @@ func (u *UserService) Find(ctx context.Context, login string) (*userEntity.User,
 		return nil, err
 	}
 	return user, nil
-}
-
-// NewUserService returns a new instance of user service.
-func NewUserService(UserRepository storage.UserRepository) *UserService {
-	return &UserService{
-		UserRepository: UserRepository,
-	}
 }

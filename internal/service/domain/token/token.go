@@ -8,11 +8,17 @@ import (
 	"time"
 
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
-	"github.com/igortoigildin/go-rewards-app/internal/storage"
 )
 
 type TokenService struct {
-	TokenRepository storage.TokenRepository
+	TokenRepository TokenRepository
+}
+
+// NewTokenService returns a new instance of user service.
+func NewTokenService(TokenRepository TokenRepository) *TokenService {
+	return &TokenService{
+		TokenRepository: TokenRepository,
+	}
 }
 
 func (t *TokenService) NewToken(ctx context.Context, userID int64, ttl time.Duration) (*userEntity.Token, error) {
@@ -47,11 +53,4 @@ func generateToken(useID int64, ttl time.Duration) (*userEntity.Token, error) {
 	hash := sha256.Sum256([]byte(token.Plaintext))
 	token.Hash = hash[:]
 	return token, nil
-}
-
-// NewTokenService returns a new instance of user service.
-func NewTokenService(TokenRepository storage.TokenRepository) *TokenService {
-	return &TokenService{
-		TokenRepository: TokenRepository,
-	}
 }

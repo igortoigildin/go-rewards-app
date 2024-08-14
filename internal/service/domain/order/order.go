@@ -3,11 +3,9 @@ package order
 import (
 	"context"
 	"strconv"
-	"time"
 
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
-	"github.com/igortoigildin/go-rewards-app/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -17,23 +15,21 @@ const (
 )
 
 type OrderService struct {
-	OrderRepository      storage.OrderRepository
-	WithdrawalRepository storage.WithdrawalRepository
+	OrderRepository OrderRepository
+}
+
+func NewOrderService(OrderRepository OrderRepository) *OrderService {
+	return &OrderService{
+		OrderRepository: OrderRepository,
+	}
 }
 
 // Returns -1 in case of success or returns user id who already added this order.
 func (o *OrderService) InsertOrder(ctx context.Context, number string, userID int64) (int64, error) {
-	t, err := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-	if err != nil {
-		logger.Log.Info("time parsing error", zap.Error(err))
-		return 0, err
-	}
-
 	order := orderEntity.Order{
-		Number:      number,
-		Status:      statusNew,
-		Uploaded_at: t,
-		UserID:      userID,
+		Number: number,
+		Status: statusNew,
+		UserID: userID,
 	}
 	id, err := o.OrderRepository.InsertOrder(ctx, &order)
 	if err != nil {
@@ -81,11 +77,4 @@ func checksum(number int) int {
 		number = number / 10
 	}
 	return luhn % 10
-}
-
-// NewOrderService returns a new instance of order service.
-func NewOrderService(OrderRepository storage.OrderRepository) *OrderService {
-	return &OrderService{
-		OrderRepository: OrderRepository,
-	}
 }

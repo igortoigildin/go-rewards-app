@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 
 CREATE TABLE IF NOT EXISTS withdrawals (
-    order VARCHAR(15) PRIMARY KEY,
+    order_id VARCHAR(15) PRIMARY KEY,
     sum INT,
     user_id BIGINT,
     date timestamp

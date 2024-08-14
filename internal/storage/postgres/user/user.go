@@ -6,7 +6,11 @@ import (
 	"errors"
 
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
-	storage "github.com/igortoigildin/go-rewards-app/internal/storage"
+)
+
+var (
+	ErrDuplicateLogin = errors.New("duplicate login")
+	ErrRecordNotFound = errors.New("no records found")
 )
 
 type UserRepository struct {
@@ -26,7 +30,7 @@ func (rep *UserRepository) Create(ctx context.Context, user *userEntity.User) er
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_login_key"`:
-			return storage.ErrDuplicateLogin
+			return ErrDuplicateLogin
 		default:
 			return err
 		}
@@ -43,7 +47,7 @@ func (rep *UserRepository) Find(ctx context.Context, login string) (*userEntity.
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, storage.ErrRecordNotFound
+			return nil, ErrRecordNotFound
 		default:
 			return nil, err
 		}

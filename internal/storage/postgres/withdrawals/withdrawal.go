@@ -20,11 +20,10 @@ func NewWithdrawalRepository(DB *sql.DB) *WithdrawalRepository {
 
 func (rep *WithdrawalRepository) Create(ctx context.Context, withdrawal *withdrawalEntity.Withdrawal) error {
 	query := `
-	INSERT INTO withdrawals (order, sum, date, user_id) VALUES ($1, $2, $3, $4)`
+	INSERT INTO withdrawals (order_id, sum, date, user_id) VALUES ($1, $2, now() AT TIME ZONE 'MSK', $4)`
 	args := []any{
 		withdrawal.Order,
 		withdrawal.Sum,
-		withdrawal.Date,
 		withdrawal.UserID,
 	}
 
@@ -39,7 +38,7 @@ func (rep *WithdrawalRepository) SelectAllForUserID(ctx context.Context, userID 
 	var withdrawals []withdrawalEntity.Withdrawal
 
 	query := `
-	SELECT order, sum, date FROM withdrawals WHERE user_id = $1 ORDER BY date;`
+	SELECT order_id, sum, date FROM withdrawals WHERE user_id = $1 ORDER BY date;`
 
 	rows, err := rep.DB.QueryContext(ctx, query, userID)
 	if err != nil {

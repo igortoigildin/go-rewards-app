@@ -6,39 +6,37 @@ import (
 	"net/http"
 
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
-	"github.com/igortoigildin/go-rewards-app/internal/storage"
 	"go.uber.org/zap"
 )
 
-func (app *app) auth(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			switch {
 			case errors.Is(err, http.ErrNoCookie):
 				logger.Log.Info("cookie not found")
-				w.WriteHeader(http.StatusBadRequest)
+				rw.WriteHeader(http.StatusBadRequest)
 			default:
 				logger.Log.Info("cookies cannot be read")
-				w.WriteHeader(http.StatusInternalServerError)
+				rw.WriteHeader(http.StatusInternalServerError)
 			}
 			return
 		}
 		plaintext := cookie.Value
 		hash := sha256.Sum256([]byte(plaintext))
-		user, err := app.services.TokenService.FindUserByToken(hash[:])
+		user, err := tokenService.FindUserByToken(hash[:]) // ctx add
 		if err != nil {
 			switch {
-			case errors.Is(err, storage.ErrRecordNotFound):
+			case errors.Is(err, ErrRecordNotFound):
 				logger.Log.Info("user with such token not found", zap.Error(err))
-				w.WriteHeader(http.StatusUnauthorized)
+				rw.WriteHeader(http.StatusUnauthorized)
 			default:
 				logger.Log.Info("error", zap.Error(err))
-				w.WriteHeader(http.StatusInternalServerError)
+				rw.WriteHeader(http.StatusInternalServerError)
 			}
 		}
-
-		r = app.contextSetUser(r, user)
-		next.ServeHTTP(w, r)
+		r = contextSetUser(r, user)
+		next.ServeHTTP(rw, r)
 	})
 }

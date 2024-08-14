@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func (app *app) readJSON(r *http.Request, dst any) error {
+func readJSON(r *http.Request, dst any) error {
 	err := json.NewDecoder(r.Body).Decode(dst)
 	if err != nil {
 		var syntaxError *json.SyntaxError
@@ -33,7 +33,7 @@ func (app *app) readJSON(r *http.Request, dst any) error {
 	return nil
 }
 
-func (app *app) writeJSON(rw http.ResponseWriter, status int, data any, headers http.Header) error {
+func writeJSON(rw http.ResponseWriter, status int, data any, headers http.Header) error {
 	js, err := json.Marshal(data)
 	if err != nil {
 		return err
