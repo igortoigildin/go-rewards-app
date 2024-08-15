@@ -13,17 +13,21 @@ const (
 )
 
 type OrderRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // NewOrderRepository returns a new instance of the repository.
-func NewOrderRepository(DB *sql.DB) *OrderRepository {
+func NewOrderRepository(db *sql.DB) *OrderRepository {
 	return &OrderRepository{
-		DB: DB,
+		db: db,
 	}
 }
 
-func (rep *OrderRepository) Update(order *orderEntity.Order) error {
+func (rep *OrderRepository) Update(ctx context.Context, order *orderEntity.Order) error {
+	tx, err := rep.db.Begin()
+	if err != nil {
+		return err
+	}
 	query := `
 	UPDATE orders SET status = $1, accrual = $2 WHERE number = $3`
 	args := []any{
@@ -31,11 +35,25 @@ func (rep *OrderRepository) Update(order *orderEntity.Order) error {
 		order.Accrual,
 		order.Number,
 	}
-	_, err := rep.DB.Exec(query, args)
+
+	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
-	return nil
+
+	query = `UPDATE users SET balance = balance + $1 WHERE user_id = $2`
+	args = []any{
+		order.Accrual,
+		order.UserID,
+	}
+
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 // SaveOrder saves new order in db or
@@ -54,7 +72,7 @@ func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.
 		order.UserID,
 	}
 
-	err := rep.DB.QueryRowContext(ctx, query, args...).Scan(&userID)
+	err := rep.db.QueryRowContext(ctx, query, args...).Scan(&userID)
 	if err != nil {
 		return 0, err
 
@@ -67,7 +85,7 @@ func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]
 	query := `
 	SELECT number, accrual, status, uploaded_at FROM orders WHERE user_id = $1 ORDER BY uploaded_at;`
 
-	rows, err := rep.DB.QueryContext(ctx, query, user)
+	rows, err := rep.db.QueryContext(ctx, query, user)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +111,7 @@ func (rep *OrderRepository) SelectForAccrualCalc() ([]int64, error) {
 	query := `
 	SELECT number FROM orders WHERE status = $1 or status = $2`
 	args := []any{statusNew, statusProcessing}
-	rows, err := rep.DB.Query(query, args)
+	rows, err := rep.db.Query(query, args)
 	if err != nil {
 		return nil, err
 	}

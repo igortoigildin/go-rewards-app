@@ -1,8 +1,9 @@
 package user
 
 type User struct {
-	ID       int64    `json:"id"`
+	UserID   int64    `json:"user_id"`
 	Login    string   `json:"login"`
 	Password Password `json:"-"`
+	Balance  *uint    `json:"balance"`
 	Token    Token
 }

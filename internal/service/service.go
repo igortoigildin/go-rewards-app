@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"errors"
 
 	"github.com/igortoigildin/go-rewards-app/internal/service/domain/order"
@@ -21,9 +20,7 @@ var ErrNotEnoughFunds = errors.New("insufficient funds in the account")
 // 	RequestBalance(ctx context.Context, userID int64) (int, error)
 // }
 
-type WithdrawalService interface {
-	Withdraw(ctx context.Context, order string, sum int, userID int64) error
-}
+
 
 // type UserService interface {
 // 	Find(ctx context.Context, login string) (*userEntity.User, error)

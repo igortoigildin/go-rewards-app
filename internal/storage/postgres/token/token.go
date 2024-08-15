@@ -15,19 +15,19 @@ var (
 )
 
 type TokenRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // NewTokenRepository returns a new instance of the repository.
-func NewTokenRepository(DB *sql.DB) *TokenRepository {
+func NewTokenRepository(db *sql.DB) *TokenRepository {
 	return &TokenRepository{
-		DB: DB,
+		db: db,
 	}
 }
 
 // Adds the data for a specific token to the tokens table.
 func (rep *TokenRepository) Insert(ctx context.Context, token *userEntity.Token) error {
-	_, err := rep.DB.ExecContext(ctx, "INSERT INTO tokens (hash, user_id, expiry)"+
+	_, err := rep.db.ExecContext(ctx, "INSERT INTO tokens (hash, user_id, expiry)"+
 		"VALUES ($1, $2, $3)", token.Hash, token.UserID, token.Expiry)
 	return err
 }
@@ -47,8 +47,8 @@ func (rep *TokenRepository) FindUserByToken(tokenHash []byte) (*userEntity.User,
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, query, args...).Scan(
-		&user.ID,
+	err := rep.db.QueryRowContext(ctx, query, args...).Scan(
+		&user.UserID,
 		&user.Login,
 		&user.Password.Hash,
 	)

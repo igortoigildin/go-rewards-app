@@ -16,8 +16,7 @@ import (
 type OrderService interface {
 	InsertOrder(ctx context.Context, number string, userID int64) (int64, error)
 	SelectAllByUser(ctx context.Context, userID int64) ([]orderEntity.Order, error)
-	ValidateOrder(number string) (bool, error)
-	UpdateAccruals(cfg *config.Config)
+	UpdateAccruals(ctx context.Context, cfg *config.Config)
 	RequestBalance(ctx context.Context, userID int64) (int, error)
 }
 
@@ -47,14 +46,14 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			return
 		}
 
-		valid, err := orderService.ValidateOrder(string(number))
+		valid, err := ValidateOrder(string(number))
 		if err != nil || !valid {
 			logger.Log.Info("error while validating order:", zap.Error(err))
 			rw.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
-		id, err := orderService.InsertOrder(ctx, string(number), user.ID)
+		id, err := orderService.InsertOrder(ctx, string(number), user.UserID)
 		if err != nil {
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
@@ -69,7 +68,7 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 		}
 
 		switch {
-		case id == user.ID:
+		case id == user.UserID:
 			logger.Log.Info("this order already added by this user")
 			rw.WriteHeader(http.StatusOK)
 			return
@@ -97,7 +96,7 @@ func allOrdersHandler(orderService OrderService) http.HandlerFunc {
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 
-		orders, err := orderService.SelectAllByUser(ctx, user.ID)
+		orders, err := orderService.SelectAllByUser(ctx, user.UserID)
 		if err != nil {
 			switch {
 			case errors.Is(err, sql.ErrNoRows):

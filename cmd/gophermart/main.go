@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 
@@ -9,11 +10,13 @@ import (
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"github.com/igortoigildin/go-rewards-app/internal/service"
 	"github.com/igortoigildin/go-rewards-app/internal/storage"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
 )
 
 func main() {
 	cfg := config.LoadConfig()
+	ctx := context.Background()
 
 	if err := logger.Initialize(cfg.FlagLogLevel); err != nil {
 		logger.Log.Info("error while initializing logger", zap.Error(err))
@@ -29,7 +32,7 @@ func main() {
 	repository := storage.NewRepository(conn)
 	services := service.NewService(repository)
 
-	//go app.services.OrderService.UpdateAccruals(cfg)
+	go api.RunAccrualUpdates(ctx, cfg, services)
 
 	err = http.ListenAndServe(cfg.FlagRunAddr, api.Router(services))
 	if err != nil {

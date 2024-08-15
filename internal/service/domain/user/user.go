@@ -34,3 +34,12 @@ func (u *UserService) Find(ctx context.Context, login string) (*userEntity.User,
 	}
 	return user, nil
 }
+
+func (u *UserService) Balance(ctx context.Context, userID int64) (int, error) {
+	balance, err := u.UserRepository.Balance(ctx, userID)
+	if err != nil {
+		logger.Log.Info("failed to fetch balance", zap.Error(err))
+		return 0, err
+	}
+	return balance, err
+}

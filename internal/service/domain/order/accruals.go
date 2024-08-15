@@ -1,6 +1,7 @@
 package order
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -15,7 +16,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func (o *OrderService) UpdateAccruals(cfg *config.Config) {
+func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
+
 	for {
 		var wg sync.WaitGroup
 		orders, err := o.OrderRepository.SelectForAccrualCalc()
@@ -52,7 +54,7 @@ func (o *OrderService) UpdateAccruals(cfg *config.Config) {
 
 		for a := 1; a <= len(orders); a++ {
 			order := <-results
-			err := o.OrderRepository.Update(&order) // updating order in DB with calculated accrual accordingly
+			err := o.OrderRepository.Update(ctx, &order) // updating order in DB with calculated accrual accordingly
 			if err != nil {
 				logger.Log.Info("error while updating order", zap.Error(err))
 			}

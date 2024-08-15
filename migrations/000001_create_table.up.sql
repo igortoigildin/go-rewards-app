@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS users (
     user_id bigserial PRIMARY KEY,
     login TEXT UNIQUE NOT NULL,
-    password_hash bytea NOT NULL
+    password_hash bytea NOT NULL,
+    balance INT CHECK (balance >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS tokens (

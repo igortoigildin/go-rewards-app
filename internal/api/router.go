@@ -20,12 +20,14 @@ import (
 
 // TODO: add handler for /api/user/withdrawals
 
-func Router(services *service.Service) *http.ServeMux {
+func Router(s *service.Service) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/user/register", registerUserHandler(services.UserService, services.TokenService))
-	mux.HandleFunc("POST /api/user/login", createAuthTokenHandler(services.UserService, services.TokenService))
-	mux.HandleFunc("POST /api/user/orders", auth(services.TokenService, insertOrderHandler(services.OrderService)))
-	mux.HandleFunc("GET /api/user/orders", auth(services.TokenService, allOrdersHandler(services.OrderService)))
+	mux.HandleFunc("POST /api/user/register", registerUserHandler(s.UserService, s.TokenService))
+	mux.HandleFunc("POST /api/user/login", createAuthTokenHandler(s.UserService, s.TokenService))
+	mux.HandleFunc("POST /api/user/orders", auth(s.TokenService, insertOrderHandler(s.OrderService)))
+	mux.HandleFunc("GET /api/user/orders", auth(s.TokenService, allOrdersHandler(s.OrderService)))
+	mux.HandleFunc("GET /api/user/balance", auth(s.TokenService, balanceHandler(s.OrderService)))
+	mux.HandleFunc("POST /api/user/balance/withdraw", auth(s.TokenService, withdrawalHandler(s.WithdrawalService)))
 
 	return mux
 }

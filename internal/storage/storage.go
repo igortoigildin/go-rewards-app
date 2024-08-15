@@ -16,11 +16,11 @@ type Repository struct {
 	Withdrawal *withdrawal.WithdrawalRepository
 }
 
-func NewRepository(DB *sql.DB) *Repository {
+func NewRepository(db *sql.DB) *Repository {
 	return &Repository{
-		User:       user.NewUserRepository(DB),
-		Token:      token.NewTokenRepository(DB),
-		Order:      order.NewOrderRepository(DB),
-		Withdrawal: withdrawal.NewWithdrawalRepository(DB),
+		User:       user.NewUserRepository(db),
+		Token:      token.NewTokenRepository(db),
+		Order:      order.NewOrderRepository(db),
+		Withdrawal: withdrawal.NewWithdrawalRepository(db),
 	}
 }

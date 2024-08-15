@@ -14,19 +14,19 @@ var (
 )
 
 type UserRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // NewUserRepository returns a new instance of the repository.
-func NewUserRepository(DB *sql.DB) *UserRepository {
+func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{
-		DB: DB,
+		db: db,
 	}
 }
 
 func (rep *UserRepository) Create(ctx context.Context, user *userEntity.User) error {
-	err := rep.DB.QueryRowContext(ctx, "INSERT INTO users (login, password_hash)"+
-		"VALUES ($1, $2) RETURNING user_id", user.Login, user.Password.Hash).Scan(&user.ID)
+	err := rep.db.QueryRowContext(ctx, "INSERT INTO users (login, password_hash, balance)"+
+		"VALUES ($1, $2) RETURNING user_id", user.Login, user.Password.Hash, user.Balance).Scan(&user.UserID)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_login_key"`:
@@ -41,8 +41,8 @@ func (rep *UserRepository) Create(ctx context.Context, user *userEntity.User) er
 func (rep *UserRepository) Find(ctx context.Context, login string) (*userEntity.User, error) {
 	var user userEntity.User
 
-	err := rep.DB.QueryRowContext(ctx, "SELECT user_id, login, password_hash FROM users WHERE login = $1", login).Scan(
-		&user.ID, &user.Login, &user.Password.Hash,
+	err := rep.db.QueryRowContext(ctx, "SELECT user_id, login, password_hash FROM users WHERE login = $1", login).Scan(
+		&user.UserID, &user.Login, &user.Password.Hash,
 	)
 	if err != nil {
 		switch {
@@ -53,4 +53,21 @@ func (rep *UserRepository) Find(ctx context.Context, login string) (*userEntity.
 		}
 	}
 	return &user, nil
+}
+
+func (rep *UserRepository) Balance(ctx context.Context, UserID int64) (int, error) {
+	var balance int
+
+	err := rep.db.QueryRowContext(ctx, "SELECT balance FROM users WHERE user_id = $1", UserID).Scan(
+		&balance,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return 0, ErrRecordNotFound
+		default:
+			return 0, err
+		}
+	}
+	return balance, nil
 }
