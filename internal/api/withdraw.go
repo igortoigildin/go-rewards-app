@@ -33,9 +33,9 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 			sum   int
 		}{}
 
-		err = readJSON(r, order)
+		err = readJSON(r, &order)
 		if err != nil {
-			logger.Log.Info("missing user info:", zap.Error(err))
+			logger.Log.Info("error while decoding json:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
@@ -9,6 +10,7 @@ import (
 
 func ValidateOrder(number string) (bool, error) {
 	res, err := strconv.Atoi(number)
+	fmt.Println(number)
 	if err != nil {
 		logger.Log.Info("error while converting number", zap.Error(err))
 		return false, err

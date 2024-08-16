@@ -55,7 +55,7 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 				jobs <- order
 			}()
 		}
-		// close(jobs)
+		
 
 		for a := 1; a <= len(orders); a++ {
 			order := <-results
@@ -66,6 +66,8 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 		}
 
 		wg.Wait()
+
+		close(jobs)
 	}
 }
 
@@ -75,7 +77,7 @@ func worker(jobs chan int64, results chan<- orderEntity.Order, cfg *config.Confi
 		url := cfg.FlagAccSysAddr + fmt.Sprintf("/api/orders/%v", j)
 
 		fmt.Println("worker startred")
-		
+
 		resp, err := http.Get(url)
 		if err != nil {
 			logger.Log.Info("error while reaching accrual system", zap.Error(err))
