@@ -16,7 +16,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 			switch {
 			case errors.Is(err, http.ErrNoCookie):
 				logger.Log.Info("cookie not found")
-				rw.WriteHeader(http.StatusBadRequest)
+				rw.WriteHeader(http.StatusUnauthorized)
 			default:
 				logger.Log.Info("cookies cannot be read")
 				rw.WriteHeader(http.StatusInternalServerError)

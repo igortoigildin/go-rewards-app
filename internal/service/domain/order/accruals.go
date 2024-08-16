@@ -32,7 +32,6 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 			}
 		}
 
-		fmt.Println("!!!!")
 		fmt.Println(orders)
 
 		jobs := make(chan int64, 10) // chan with order numbers for accrual calculation
@@ -46,7 +45,6 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 			}()
 		}
 
-		fmt.Println("???")
 
 		for _, order := range orders {
 			wg.Add(1)

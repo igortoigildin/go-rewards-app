@@ -23,8 +23,8 @@ func LoadConfig() *Config {
 	flag.StringVar(&cfg.FlagDBURI, "d", DefaultPostgresConfig().String(), "DATABASE URI")
 	flag.StringVar(&cfg.FlagAccSysAddr, "r", "", "accrual system address")
 	flag.StringVar(&cfg.FlagLogLevel, "l", "info", "log level")
-	flag.IntVar(&cfg.FlagAttemptInterval, "i", 5, "frequency of orders being sent for accrual calculation")
-	flag.IntVar(&cfg.FlagRateLimit, "c", 5, "frequency of orders being sent for accrual calculation")
+	flag.IntVar(&cfg.FlagAttemptInterval, "i", 1, "frequency of orders being sent for accrual calculation")
+	flag.IntVar(&cfg.FlagRateLimit, "c", 20, "frequency of orders being sent for accrual calculation")
 	flag.Parse()
 	if envRunAddr := os.Getenv("RUN_ADDRESS"); envRunAddr != "" {
 		cfg.FlagRunAddr = envRunAddr
