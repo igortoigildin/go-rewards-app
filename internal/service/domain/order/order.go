@@ -9,6 +9,7 @@ import (
 const (
 	statusNew        = "NEW"
 	statusRegistered = "REGISTERED"
+	statusProcessing = "PROCESSING"
 )
 
 type OrderService struct {

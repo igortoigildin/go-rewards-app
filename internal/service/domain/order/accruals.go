@@ -107,7 +107,7 @@ func processOrderStatusOK(resp *http.Response, jobs chan int64, results chan<- o
 	}
 
 	switch {
-	case order.Status == statusRegistered:
+	case order.Status == statusRegistered || order.Status == statusProcessing:
 		jobs <- j // in case "REGISTERED" - send this number again
 	default:
 		results <- order

@@ -10,7 +10,7 @@ import (
 
 func ValidateOrder(number string) (bool, error) {
 	res, err := strconv.Atoi(number)
-	fmt.Println(number)
+	fmt.Println("HERE we go - ", number)
 	if err != nil {
 		logger.Log.Info("error while converting number", zap.Error(err))
 		return false, err
