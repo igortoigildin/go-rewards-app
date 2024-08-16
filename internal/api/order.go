@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -40,11 +41,15 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			return
 		}
 
+		
+
 		if len(number) == 0 {
 			logger.Log.Info("order not provided", zap.Error(err))
-			rw.WriteHeader(http.StatusBadRequest)
+			rw.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
+
+		fmt.Println("NEW NUMBER RECEIVED - ", number)
 
 		valid, err := ValidateOrder(string(number))
 		if err != nil || !valid {
@@ -55,17 +60,19 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 
 		id, err := orderService.InsertOrder(ctx, string(number), user.UserID)
 		if err != nil {
-			switch {
-			case errors.Is(err, sql.ErrNoRows):
-				logger.Log.Info("new order accepted successfully")
-				rw.WriteHeader(http.StatusAccepted)
-				return
-			default:
+			// switch {
+			// case errors.Is(err, sql.ErrNoRows):
+			// 	logger.Log.Info("new order accepted successfully")
+			// 	rw.WriteHeader(http.StatusAccepted)
+			// 	return
+			// default:
 				logger.Log.Info("error while inserting order", zap.Error(err))
 				rw.WriteHeader(http.StatusInternalServerError)
 				return
-			}
+			
 		}
+
+		fmt.Println("RESULT - ", id)
 
 		switch {
 		case id == user.UserID:
@@ -74,7 +81,7 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			return
 		case id == -1:
 			logger.Log.Info("order added successfully")
-			rw.WriteHeader(http.StatusOK)
+			rw.WriteHeader(http.StatusAccepted)
 			return
 		default:
 			logger.Log.Info("this order already added by another user")
