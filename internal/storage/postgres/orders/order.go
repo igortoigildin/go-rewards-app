@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 )
@@ -61,23 +62,35 @@ func (rep *OrderRepository) Update(ctx context.Context, order *orderEntity.Order
 // Returns -1 if added successfully.
 func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
 	var userID int64
-	query := `
-	WITH new_orders AS (INSERT INTO orders (number, status, user_id, uploaded_at)
-	VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK') ON CONFLICT (number) DO NOTHING RETURNING user_id)
-	SELECT COALESCE ((-1), (SELECT user_id FROM orders WHERE number = $1));
-	`
+
+	err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			// no such order exists
+		default:
+			return 0, err
+		}
+	}
+
+	if userID != 0 { // order already exists, return
+		return userID, nil
+	}
+
+	query := "INSERT INTO orders (number, status, user_id, uploaded_at)" +
+		"VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')"
 	args := []any{
 		order.Number,
 		order.Status,
 		order.UserID,
 	}
 
-	err := rep.db.QueryRowContext(ctx, query, args...).Scan(&userID)
+	_, err = rep.db.ExecContext(ctx, query, args...) // insert order accordingly
 	if err != nil {
 		return 0, err
 
 	}
-	return userID, nil
+	return 0, nil
 }
 
 func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error) {

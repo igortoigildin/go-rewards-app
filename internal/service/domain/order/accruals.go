@@ -31,7 +31,7 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 				logger.Log.Info("error while selecting orders for accrual recalulation", zap.Error(err))
 			}
 		}
-		
+
 		fmt.Println("!!!!")
 		fmt.Println(orders)
 
@@ -55,7 +55,6 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 				jobs <- order
 			}()
 		}
-		
 
 		for a := 1; a <= len(orders); a++ {
 			order := <-results

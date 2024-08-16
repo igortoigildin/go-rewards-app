@@ -22,7 +22,6 @@ func NewOrderService(OrderRepository OrderRepository) *OrderService {
 	}
 }
 
-// Returns -1 in case of success or returns user id who already added this order.
 func (o *OrderService) InsertOrder(ctx context.Context, number string, userID int64) (int64, error) {
 	order := orderEntity.Order{
 		Number: number,

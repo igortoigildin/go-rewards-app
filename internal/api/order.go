@@ -42,8 +42,6 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			return
 		}
 
-		
-
 		if len(number) == 0 {
 			logger.Log.Info("order not provided", zap.Error(err))
 			rw.WriteHeader(http.StatusUnprocessableEntity)
@@ -61,16 +59,9 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 
 		id, err := orderService.InsertOrder(ctx, string(number), user.UserID)
 		if err != nil {
-			// switch {
-			// case errors.Is(err, sql.ErrNoRows):
-			// 	logger.Log.Info("new order accepted successfully")
-			// 	rw.WriteHeader(http.StatusAccepted)
-			// 	return
-			// default:
-				logger.Log.Info("error while inserting order", zap.Error(err))
-				rw.WriteHeader(http.StatusInternalServerError)
-				return
-			
+			logger.Log.Info("error while inserting order", zap.Error(err))
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		fmt.Println("RESULT - ", id)
@@ -80,7 +71,7 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			logger.Log.Info("this order already added by this user")
 			rw.WriteHeader(http.StatusOK)
 			return
-		case id == -1:
+		case id == 0:
 			logger.Log.Info("order added successfully")
 			rw.WriteHeader(http.StatusAccepted)
 			return
@@ -117,14 +108,12 @@ func allOrdersHandler(orderService OrderService) http.HandlerFunc {
 			}
 		}
 
-
 		js, err := json.Marshal(orders)
 		if err != nil {
 			logger.Log.Info("error while marshalling", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
 
 		rw.Header().Set("Content-Type", "application/json")
 		rw.WriteHeader(http.StatusOK)
