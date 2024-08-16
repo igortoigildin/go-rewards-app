@@ -32,8 +32,8 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 			}
 		}
 
-		jobs := make(chan int64, len(orders)) // chan with order numbers for accrual calculation
-		results := make(chan orderEntity.Order, len(orders))
+		jobs := make(chan int64, 10) // chan with order numbers for accrual calculation
+		results := make(chan orderEntity.Order, 10)
 
 		for w := 1; w <= cfg.FlagRateLimit; w++ {
 			wg.Add(1)
