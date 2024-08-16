@@ -73,6 +73,7 @@ func worker(jobs chan int64, results chan<- orderEntity.Order, cfg *config.Confi
 		if err != nil {
 			logger.Log.Info("error while reaching accrual system", zap.Error(err))
 		}
+		resp.Body.Close()
 
 		switch resp.StatusCode {
 		case http.StatusOK:

@@ -8,7 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func balanceHandler(orderService OrderService) http.HandlerFunc {
+func balanceHandler(orderService OrderService, withdrawalService WithdrawalService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithCancel(r.Context())
@@ -20,11 +20,35 @@ func balanceHandler(orderService OrderService) http.HandlerFunc {
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 
-		balance, err := orderService.RequestBalance(ctx, user.UserID)
+		currentBalance, err := orderService.RequestBalance(ctx, user.UserID)
 		if err != nil {
-			logger.Log.Info("error while obtaining user balance:", zap.Error(err))
+			logger.Log.Info("error while obtaining current balance:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
-		// TODO withdrawn
+
+		withdraws, err := withdrawalService.WithdrawalsForUser(ctx, user.UserID)
+		if err != nil {
+			logger.Log.Info("error while obtaining withdrawn balance:", zap.Error(err))
+			rw.WriteHeader(http.StatusInternalServerError)
+		}
+
+		var withdrawnBalance int
+		for _, withdraw := range withdraws {
+			withdrawnBalance += withdraw.Sum
+		}
+
+		data := struct {
+			current   int
+			withdrawn int
+		}{
+			current:   currentBalance,
+			withdrawn: withdrawnBalance,
+		}
+
+		err = writeJSON(rw, http.StatusOK, data, nil)
+		if err != nil {
+			logger.Log.Info("error while encoding response:", zap.Error(err))
+			rw.WriteHeader(http.StatusInternalServerError)
+		}
 	})
 }

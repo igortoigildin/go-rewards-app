@@ -20,8 +20,6 @@ var ErrNotEnoughFunds = errors.New("insufficient funds in the account")
 // 	RequestBalance(ctx context.Context, userID int64) (int, error)
 // }
 
-
-
 // type UserService interface {
 // 	Find(ctx context.Context, login string) (*userEntity.User, error)
 // 	Create(ctx context.Context, user *userEntity.User) error

@@ -42,4 +42,3 @@ func (o *OrderService) SelectAllByUser(ctx context.Context, userID int64) ([]ord
 	}
 	return orders, nil
 }
-
