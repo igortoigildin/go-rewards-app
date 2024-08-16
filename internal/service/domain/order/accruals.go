@@ -89,6 +89,7 @@ func worker(jobs chan int64, results chan<- orderEntity.Order, cfg *config.Confi
 			processOrderStatusOK(resp, jobs, results, j)
 		case http.StatusNoContent:
 			logger.Log.Info("order not registered")
+			//////
 		case http.StatusTooManyRequests:
 			jobs <- j
 			time.Sleep(cfg.PauseDuration * 2)

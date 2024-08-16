@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -49,7 +50,7 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("NEW NUMBER RECEIVED - ", number)
+		fmt.Println("NEW NUMBER RECEIVED - ", string(number))
 
 		valid, err := ValidateOrder(string(number))
 		if err != nil || !valid {
@@ -116,11 +117,17 @@ func allOrdersHandler(orderService OrderService) http.HandlerFunc {
 			}
 		}
 
-		err = writeJSON(rw, http.StatusAccepted, orders, nil)
+
+		js, err := json.Marshal(orders)
 		if err != nil {
-			logger.Log.Info("error while encoding response", zap.Error(err))
+			logger.Log.Info("error while marshalling", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+
+		rw.Header().Set("Content-Type", "application/json")
+		rw.WriteHeader(http.StatusOK)
+		rw.Write(js)
 	})
 }
