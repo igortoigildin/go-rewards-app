@@ -25,14 +25,13 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
 				logger.Log.Info("no new orders for accrual calculation found")
-				time.Sleep(cfg.PauseDuration) // sleep before next attempt
 				continue
 			default:
 				logger.Log.Info("error while selecting orders for accrual recalulation", zap.Error(err))
 			}
 		}
 
-		fmt.Println(orders)
+		fmt.Println("ORDERS", orders)
 
 		jobs := make(chan int64, 10) // chan with order numbers for accrual calculation
 		results := make(chan orderEntity.Order, 10)
