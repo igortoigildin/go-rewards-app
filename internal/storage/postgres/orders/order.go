@@ -92,7 +92,7 @@ func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]
 	defer rows.Close()
 	for rows.Next() {
 		var order orderEntity.Order
-		err = rows.Scan(&order.Number, &order.Accrual, &order.Status, &order.Uploaded_at)
+		err = rows.Scan(&order.Number, &order.Accrual, &order.Status, &order.UploadedAt)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +111,7 @@ func (rep *OrderRepository) SelectForAccrualCalc() ([]int64, error) {
 	query := `
 	SELECT number FROM orders WHERE status = $1 or status = $2`
 	args := []any{statusNew, statusProcessing}
-	rows, err := rep.db.Query(query, args)
+	rows, err := rep.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

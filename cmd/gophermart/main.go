@@ -3,8 +3,12 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/igortoigildin/go-rewards-app/config"
 	"github.com/igortoigildin/go-rewards-app/internal/api"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
@@ -22,20 +26,42 @@ func main() {
 		logger.Log.Info("error while initializing logger", zap.Error(err))
 	}
 
-	conn, err := sql.Open("pgx", cfg.FlagDBURI)
+	db, err := sql.Open("pgx", cfg.FlagDBURI)
 	if err != nil {
-		logger.Log.Info("error while connecting to DB", zap.Error(err))
+		logger.Log.Fatal("error while connecting to DB", zap.Error(err))
 	}
-	defer conn.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Log.Fatal("error while closing db connection", zap.Error(err))
+		}
+	}()
+
 	logger.Log.Info("database connection pool established")
 
-	repository := storage.NewRepository(conn)
+	instance, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		logger.Log.Fatal("migration error", zap.Error(err))
+	}
+
+	migrator, err := migrate.NewWithDatabaseInstance("file://migrations", "postgres", instance)
+	if err != nil {
+		logger.Log.Fatal("migration error", zap.Error(err))
+	}
+	// migrate.ErrNoChange
+	err = migrator.Up()
+	if err != nil || errors.Is(err, migrate.ErrNoChange) {
+		logger.Log.Fatal("migration error", zap.Error(err))
+	}
+
+	logger.Log.Info("database connection pool established")
+
+	repository := storage.NewRepository(db)
 	services := service.NewService(repository)
 
 	go api.RunAccrualUpdates(ctx, cfg, services)
 
 	err = http.ListenAndServe(cfg.FlagRunAddr, api.Router(services))
 	if err != nil {
-		logger.Log.Fatal("cannot start server", zap.Error(err))
+		logger.Log.Fatal("database migrations applied", zap.Error(err))
 	}
 }
