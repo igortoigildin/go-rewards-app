@@ -39,6 +39,12 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 
+		//
+		if order.order == "" {
+			rw.WriteHeader(http.StatusBadRequest)
+		}
+		//
+		
 		valid, err := ValidateOrder(order.order)
 		if err != nil || !valid {
 			logger.Log.Info("error while validating order:", zap.Error(err))

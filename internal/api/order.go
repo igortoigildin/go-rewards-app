@@ -109,7 +109,7 @@ func allOrdersHandler(orderService OrderService) http.HandlerFunc {
 			}
 		}
 
-		err = writeJSON(rw, http.StatusOK, orders, nil)
+		err = writeJSON(rw, http.StatusAccepted, orders, nil)
 		if err != nil {
 			logger.Log.Info("error while encoding response", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
