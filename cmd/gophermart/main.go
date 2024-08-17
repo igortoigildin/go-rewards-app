@@ -60,7 +60,7 @@ func main() {
 
 	go api.RunAccrualUpdates(ctx, cfg, services)
 
-	err = http.ListenAndServe(cfg.FlagRunAddr, api.Router(services))
+	err = http.ListenAndServe(cfg.FlagRunAddr, api.Router(services, cfg))
 	if err != nil {
 		logger.Log.Fatal("database migrations applied", zap.Error(err))
 	}

@@ -22,7 +22,7 @@ type OrderService interface {
 	RequestBalance(ctx context.Context, userID int64) (int, error)
 }
 
-func insertOrderHandler(orderService OrderService) http.HandlerFunc {
+func insertOrderHandler(orderService OrderService, cfg *config.Config) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
 		ctx, cancel := context.WithCancel(r.Context())
@@ -74,6 +74,11 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 		case id == 0:
 			logger.Log.Info("order added successfully")
 			rw.WriteHeader(http.StatusAccepted)
+
+			orderService.UpdateAccruals(ctx, cfg)
+
+
+
 			return
 		default:
 			logger.Log.Info("this order already added by another user")
