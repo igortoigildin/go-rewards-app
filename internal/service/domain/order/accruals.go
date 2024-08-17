@@ -18,14 +18,13 @@ import (
 
 func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 
-	for {
+
 		var wg sync.WaitGroup
 		orders, err := o.OrderRepository.SelectForAccrualCalc()
 		if err != nil {
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
 				logger.Log.Info("no new orders for accrual calculation found")
-				continue
 			default:
 				logger.Log.Info("error while selecting orders for accrual recalulation", zap.Error(err))
 			}
@@ -64,7 +63,7 @@ func (o *OrderService) UpdateAccruals(ctx context.Context, cfg *config.Config) {
 		wg.Wait()
 
 		close(jobs)
-	}
+	
 }
 
 // Sends recived orders to accrual system and work with responses.
