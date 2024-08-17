@@ -58,7 +58,7 @@ func main() {
 	repository := storage.NewRepository(db)
 	services := service.NewService(repository)
 
-	go api.RunAccrualUpdates(ctx, cfg, services)
+	// go api.RunAccrualUpdates(ctx, cfg, services)
 
 	err = http.ListenAndServe(cfg.FlagRunAddr, api.Router(services, cfg))
 	if err != nil {

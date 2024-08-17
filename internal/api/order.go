@@ -77,8 +77,6 @@ func insertOrderHandler(orderService OrderService, cfg *config.Config) http.Hand
 
 			orderService.UpdateAccruals(ctx, cfg)
 
-
-
 			return
 		default:
 			logger.Log.Info("this order already added by another user")
