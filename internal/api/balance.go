@@ -8,9 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func balanceHandler(orderService OrderService, withdrawalService WithdrawalService) http.HandlerFunc {
+func balanceHandler(userService UserService, withdrawalService WithdrawalService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
@@ -20,7 +19,7 @@ func balanceHandler(orderService OrderService, withdrawalService WithdrawalServi
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 
-		currentBalance, err := orderService.RequestBalance(ctx, user.UserID)
+		currentBalance, err := userService.Balance(ctx, user.UserID)
 		if err != nil {
 			logger.Log.Info("error while obtaining current balance:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -32,17 +31,17 @@ func balanceHandler(orderService OrderService, withdrawalService WithdrawalServi
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 
-		var withdrawnBalance int
+		var withdrawnBalance float64
 		for _, withdraw := range withdraws {
 			withdrawnBalance += withdraw.Sum
 		}
 
 		data := struct {
-			current   int
-			withdrawn int
+			Current   float64 `json:"current"`
+			Withdrawn float64 `json:"withdrawn"`
 		}{
-			current:   currentBalance,
-			withdrawn: withdrawnBalance,
+			Current:   float64(currentBalance),
+			Withdrawn: float64(withdrawnBalance),
 		}
 
 		err = writeJSON(rw, http.StatusOK, data, nil)

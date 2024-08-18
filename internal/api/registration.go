@@ -16,16 +16,16 @@ var ErrDuplicateLogin = errors.New("duplicate login")
 type UserService interface {
 	Find(ctx context.Context, login string) (*userEntity.User, error)
 	Create(ctx context.Context, user *userEntity.User) error
+	Balance(ctx context.Context, userID int64) (float64, error)
 }
 
 type TokenService interface {
 	NewToken(ctx context.Context, userID int64, ttl time.Duration) (*userEntity.Token, error)
-	FindUserByToken(tokenHash []byte) (*userEntity.User, error)
+	FindUserByToken(ctx context.Context, tokenHash []byte) (*userEntity.User, error)
 }
 
 func registerUserHandler(userService UserService, tokenService TokenService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
@@ -40,8 +40,10 @@ func registerUserHandler(userService UserService, tokenService TokenService) htt
 			return
 		}
 
+		var balance float64
 		user := &userEntity.User{
-			Login: input.Login,
+			Login:   input.Login,
+			Balance: &balance,
 		}
 
 		err = user.Password.Set(input.Password)

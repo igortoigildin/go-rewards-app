@@ -40,7 +40,6 @@ func (rep *UserRepository) Create(ctx context.Context, user *userEntity.User) er
 
 func (rep *UserRepository) Find(ctx context.Context, login string) (*userEntity.User, error) {
 	var user userEntity.User
-
 	err := rep.db.QueryRowContext(ctx, "SELECT user_id, login, password_hash FROM users WHERE login = $1", login).Scan(
 		&user.UserID, &user.Login, &user.Password.Hash,
 	)
@@ -55,9 +54,8 @@ func (rep *UserRepository) Find(ctx context.Context, login string) (*userEntity.
 	return &user, nil
 }
 
-func (rep *UserRepository) Balance(ctx context.Context, UserID int64) (int, error) {
-	var balance int
-
+func (rep *UserRepository) Balance(ctx context.Context, UserID int64) (float64, error) {
+	var balance float64
 	err := rep.db.QueryRowContext(ctx, "SELECT balance FROM users WHERE user_id = $1", UserID).Scan(
 		&balance,
 	)

@@ -32,7 +32,7 @@ func (rep *TokenRepository) Insert(ctx context.Context, token *userEntity.Token)
 	return err
 }
 
-func (rep *TokenRepository) FindUserByToken(tokenHash []byte) (*userEntity.User, error) {
+func (rep *TokenRepository) FindUserByToken(ctx context.Context, tokenHash []byte) (*userEntity.User, error) {
 	query := `
 	SELECT users.user_id, users.login, users.password_hash 
 	FROM users
@@ -43,9 +43,6 @@ func (rep *TokenRepository) FindUserByToken(tokenHash []byte) (*userEntity.User,
 
 	args := []any{tokenHash, time.Now()}
 	var user userEntity.User
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	err := rep.db.QueryRowContext(ctx, query, args...).Scan(
 		&user.UserID,

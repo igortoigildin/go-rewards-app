@@ -26,13 +26,12 @@ func (t *TokenService) NewToken(ctx context.Context, userID int64, ttl time.Dura
 	if err != nil {
 		return nil, err
 	}
-
 	err = t.TokenRepository.Insert(ctx, token)
 	return token, err
 }
 
-func (t *TokenService) FindUserByToken(tokenHash []byte) (*userEntity.User, error) {
-	return t.TokenRepository.FindUserByToken(tokenHash)
+func (t *TokenService) FindUserByToken(ctx context.Context, tokenHash []byte) (*userEntity.User, error) {
+	return t.TokenRepository.FindUserByToken(ctx, tokenHash)
 }
 
 func generateToken(useID int64, ttl time.Duration) (*userEntity.Token, error) {
@@ -40,7 +39,6 @@ func generateToken(useID int64, ttl time.Duration) (*userEntity.Token, error) {
 		UserID: useID,
 		Expiry: time.Now().Add(ttl),
 	}
-
 	randomBytes := make([]byte, 16)
 
 	// Fill the byte slice with random bytes from the operating system's CSPRNG
@@ -48,7 +46,6 @@ func generateToken(useID int64, ttl time.Duration) (*userEntity.Token, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	token.Plaintext = base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
 	hash := sha256.Sum256([]byte(token.Plaintext))
 	token.Hash = hash[:]

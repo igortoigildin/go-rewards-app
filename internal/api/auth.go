@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/sha256"
 	"errors"
 	"net/http"
@@ -25,7 +26,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 		}
 		plaintext := cookie.Value
 		hash := sha256.Sum256([]byte(plaintext))
-		user, err := tokenService.FindUserByToken(hash[:]) // ctx add
+		user, err := tokenService.FindUserByToken(context.Background(), hash[:]) // ctx add
 		if err != nil {
 			switch {
 			case errors.Is(err, ErrRecordNotFound):

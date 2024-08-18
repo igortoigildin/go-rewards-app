@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_id bigserial PRIMARY KEY,
     login TEXT UNIQUE NOT NULL,
     password_hash bytea NOT NULL,
-    balance INT CHECK (balance >= 0)
+    balance REAL CHECK (balance >= 0)
 );
 
 CREATE TABLE IF NOT EXISTS tokens (
@@ -15,13 +15,13 @@ CREATE TABLE IF NOT EXISTS orders (
     number VARCHAR(15) PRIMARY KEY,
     status VARCHAR(10),
     user_id BIGINT,
-    accrual INT,
+    accrual REAL,
     uploaded_at timestamp
 );
 
 CREATE TABLE IF NOT EXISTS withdrawals (
     order_id VARCHAR(15) PRIMARY KEY,
-    sum INT,
+    sum REAL,
     user_id BIGINT,
     date timestamp
 );

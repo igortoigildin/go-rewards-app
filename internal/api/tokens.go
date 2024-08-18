@@ -63,6 +63,16 @@ func createAuthTokenHandler(userService UserService, tokenService TokenService) 
 			logger.Log.Info("error while ctreating new token", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
+
+		// Initialize a new cookie containing the new token create
+		cookie := http.Cookie{
+			Name:     "token",
+			Value:    token.Plaintext,
+			Expires:  token.Expiry,
+			HttpOnly: true,
+		}
+		http.SetCookie(rw, &cookie)
+
 		err = writeJSON(rw, http.StatusOK, token, nil)
 		if err != nil {
 			logger.Log.Info("error while encoding response", zap.Error(err))

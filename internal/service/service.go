@@ -12,24 +12,6 @@ import (
 
 var ErrNotEnoughFunds = errors.New("insufficient funds in the account")
 
-// type OrderService interface {
-// 	InsertOrder(ctx context.Context, number string, userID int64) (int64, error)
-// 	SelectAllByUser(ctx context.Context, userID int64) ([]orderEntity.Order, error)
-// 	ValidateOrder(number string) (bool, error)
-// 	UpdateAccruals(cfg *config.Config)
-// 	RequestBalance(ctx context.Context, userID int64) (int, error)
-// }
-
-// type UserService interface {
-// 	Find(ctx context.Context, login string) (*userEntity.User, error)
-// 	Create(ctx context.Context, user *userEntity.User) error
-// }
-
-// type TokenService interface {
-// 	NewToken(ctx context.Context, userID int64, ttl time.Duration) (*userEntity.Token, error)
-// 	FindUserByToken(tokenHash []byte) (*userEntity.User, error)
-// }
-
 // Service storage of all services.
 type Service struct {
 	UserService       *user.UserService

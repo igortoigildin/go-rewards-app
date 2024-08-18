@@ -13,7 +13,7 @@ import (
 )
 
 type WithdrawalService interface {
-	Withdraw(ctx context.Context, order string, sum int, userID int64) error
+	Withdraw(ctx context.Context, order string, sum float64, userID int64) error
 	WithdrawalsForUser(ctx context.Context, userID int64) ([]model.Withdrawal, error)
 }
 
@@ -29,8 +29,8 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 		}
 
 		order := struct {
-			order string
-			sum   int
+			Order string  `json:"order"`
+			Sum   float64 `json:"sum"`
 		}{}
 
 		err = readJSON(r, &order)
@@ -39,21 +39,14 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 
-		//
-		if order.order == "" {
-			rw.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		//
-
-		valid, err := ValidateOrder(order.order)
+		valid, err := ValidateOrder(order.Order)
 		if err != nil || !valid {
 			logger.Log.Info("error while validating order:", zap.Error(err))
 			rw.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
-		err = withdrawalService.Withdraw(ctx, order.order, order.sum, user.UserID)
+		err = withdrawalService.Withdraw(ctx, order.Order, order.Sum, user.UserID)
 		if err != nil {
 			switch {
 			case errors.Is(err, service.ErrNotEnoughFunds):

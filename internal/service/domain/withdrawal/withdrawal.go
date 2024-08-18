@@ -18,7 +18,7 @@ func NewWithdrawalService(WithdrawalRepository WithdrawalRepository) *Withdrawal
 	}
 }
 
-func (w *WithdrawalService) Withdraw(ctx context.Context, order string, sum int, userID int64) error {
+func (w *WithdrawalService) Withdraw(ctx context.Context, order string, sum float64, userID int64) error {
 	withdrawal := model.Withdrawal{
 		Order:  order,
 		Sum:    sum,

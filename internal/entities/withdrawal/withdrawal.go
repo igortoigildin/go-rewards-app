@@ -4,7 +4,7 @@ import "time"
 
 type Withdrawal struct {
 	Order  string    `json:"order"`
-	Sum    int       `json:"sum"`
+	Sum    float64   `json:"sum"`
 	Date   time.Time `json:"date"`
 	UserID int64     `json:"-"`
 }

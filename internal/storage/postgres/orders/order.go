@@ -24,7 +24,7 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 	}
 }
 
-func (rep *OrderRepository) Update(ctx context.Context, order *orderEntity.Order) error {
+func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *orderEntity.Order) error {
 	tx, err := rep.db.Begin()
 	if err != nil {
 		return err
@@ -57,9 +57,6 @@ func (rep *OrderRepository) Update(ctx context.Context, order *orderEntity.Order
 	return tx.Commit()
 }
 
-// SaveOrder saves new order in db or
-// returns the user id who already saved this order.
-// Returns -1 if added successfully.
 func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
 	var userID int64
 

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -18,8 +17,7 @@ import (
 type OrderService interface {
 	InsertOrder(ctx context.Context, number string, userID int64) (int64, error)
 	SelectAllByUser(ctx context.Context, userID int64) ([]orderEntity.Order, error)
-	UpdateAccruals(ctx context.Context, cfg *config.Config)
-	RequestBalance(ctx context.Context, userID int64) (int, error)
+	UpdateAccruals(cfg *config.Config, order *orderEntity.Order)
 }
 
 func insertOrderHandler(orderService OrderService, cfg *config.Config) http.HandlerFunc {
@@ -48,8 +46,6 @@ func insertOrderHandler(orderService OrderService, cfg *config.Config) http.Hand
 			return
 		}
 
-		fmt.Println("NEW NUMBER RECEIVED - ", string(number))
-
 		valid, err := ValidateOrder(string(number))
 		if err != nil || !valid {
 			logger.Log.Info("error while validating order:", zap.Error(err))
@@ -63,8 +59,13 @@ func insertOrderHandler(orderService OrderService, cfg *config.Config) http.Hand
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		fmt.Println("RESULT - ", id)
+		var accraualValue float64
+		order := orderEntity.Order{
+			Number:  string(number),
+			Status:  "NEW",
+			Accrual: &accraualValue,
+			UserID:  user.UserID,
+		}
 
 		switch {
 		case id == user.UserID:
@@ -74,9 +75,7 @@ func insertOrderHandler(orderService OrderService, cfg *config.Config) http.Hand
 		case id == 0:
 			logger.Log.Info("order added successfully")
 			rw.WriteHeader(http.StatusAccepted)
-
-			orderService.UpdateAccruals(ctx, cfg)
-
+			go orderService.UpdateAccruals(cfg, &order) // Send reqest to accrual api
 			return
 		default:
 			logger.Log.Info("this order already added by another user")
@@ -88,7 +87,6 @@ func insertOrderHandler(orderService OrderService, cfg *config.Config) http.Hand
 
 func allOrdersHandler(orderService OrderService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
