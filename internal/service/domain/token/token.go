@@ -34,9 +34,9 @@ func (t *TokenService) FindUserByToken(ctx context.Context, tokenHash []byte) (*
 	return t.TokenRepository.FindUserByToken(ctx, tokenHash)
 }
 
-func generateToken(useID int64, ttl time.Duration) (*userEntity.Token, error) {
+func generateToken(userID int64, ttl time.Duration) (*userEntity.Token, error) {
 	token := &userEntity.Token{
-		UserID: useID,
+		UserID: userID,
 		Expiry: time.Now().Add(ttl),
 	}
 	randomBytes := make([]byte, 16)

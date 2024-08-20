@@ -13,12 +13,14 @@ import (
 
 var ErrDuplicateLogin = errors.New("duplicate login")
 
+//go:generate mockgen -package mocks -destination=../mocks/userService.go github.com/igortoigildin/go-rewards-app/internal/api UserService
 type UserService interface {
 	Find(ctx context.Context, login string) (*userEntity.User, error)
 	Create(ctx context.Context, user *userEntity.User) error
 	Balance(ctx context.Context, userID int64) (float64, error)
 }
 
+//go:generate mockgen -package mocks -destination=../mocks/tokenService.go github.com/igortoigildin/go-rewards-app/internal/api TokenService
 type TokenService interface {
 	NewToken(ctx context.Context, userID int64, ttl time.Duration) (*userEntity.Token, error)
 	FindUserByToken(ctx context.Context, tokenHash []byte) (*userEntity.User, error)

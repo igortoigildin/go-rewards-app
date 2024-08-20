@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockgen -package mocks -destination=../../mocks/withdrawalService.go github.com/igortoigildin/go-rewards-app/internal/api WithdrawalService
 type WithdrawalService interface {
 	Withdraw(ctx context.Context, order string, sum float64, userID int64) error
 	WithdrawalsForUser(ctx context.Context, userID int64) ([]model.Withdrawal, error)
