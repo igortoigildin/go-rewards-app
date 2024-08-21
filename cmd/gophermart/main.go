@@ -32,7 +32,6 @@ func main() {
 			logger.Log.Fatal("error while closing db connection", zap.Error(err))
 		}
 	}()
-
 	logger.Log.Info("database connection pool established")
 
 	instance, err := postgres.WithInstance(db, &postgres.Config{})

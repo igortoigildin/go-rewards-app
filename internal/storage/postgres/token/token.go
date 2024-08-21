@@ -40,10 +40,8 @@ func (rep *TokenRepository) FindUserByToken(ctx context.Context, tokenHash []byt
 	ON users.user_id = tokens.user_id
 	WHERE tokens.hash = $1 
 	AND tokens.expiry > $2`
-
 	args := []any{tokenHash, time.Now()}
 	var user userEntity.User
-
 	err := rep.db.QueryRowContext(ctx, query, args...).Scan(
 		&user.UserID,
 		&user.Login,

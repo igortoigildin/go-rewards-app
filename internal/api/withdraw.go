@@ -27,6 +27,7 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		order := struct {
@@ -38,6 +39,7 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 		if err != nil {
 			logger.Log.Info("error while decoding json:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		valid, err := ValidateOrder(order.Order)
@@ -56,8 +58,8 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 			default:
 				logger.Log.Info("error while making withdrawal:", zap.Error(err))
 			}
+			return
 		}
-
 	}
 }
 
@@ -74,11 +76,6 @@ func withdrawalsHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 
 		trans, err := withdrawalService.WithdrawalsForUser(ctx, user.UserID)
 		if err != nil {
-			logger.Log.Info("error while obtaining withdrawals for user:", zap.Error(err))
-			rw.WriteHeader(http.StatusInternalServerError)
-		}
-
-		if err != nil {
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
 				rw.WriteHeader(http.StatusNoContent)
@@ -89,7 +86,6 @@ func withdrawalsHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 				return
 			}
 		}
-
 		err = writeJSON(rw, http.StatusOK, trans, nil)
 		if err != nil {
 			logger.Log.Info("error while encoding response", zap.Error(err))

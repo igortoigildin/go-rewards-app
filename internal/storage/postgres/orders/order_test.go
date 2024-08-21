@@ -21,7 +21,6 @@ func TestOrderRepository_InsertOrder(t *testing.T) {
 		UserID: int64(456),
 	}
 	blankOrder := model.Order{}
-
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -118,7 +117,6 @@ func TestOrderRepository_SelectAllByUser(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			got, err := r.SelectAllByUser(tt.ctx, tt.UserID)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("OrderRepository.SelectAllByUser() error = %v, wantErr %v", err, tt.wantErr)

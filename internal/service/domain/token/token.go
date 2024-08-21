@@ -40,7 +40,6 @@ func generateToken(userID int64, ttl time.Duration) (*userEntity.Token, error) {
 		Expiry: time.Now().Add(ttl),
 	}
 	randomBytes := make([]byte, 16)
-
 	// Fill the byte slice with random bytes from the operating system's CSPRNG
 	_, err := rand.Read(randomBytes)
 	if err != nil {

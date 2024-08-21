@@ -24,7 +24,6 @@ func (w *WithdrawalService) Withdraw(ctx context.Context, order string, sum floa
 		Sum:    sum,
 		UserID: userID,
 	}
-
 	err := w.WithdrawalRepository.Create(ctx, &withdrawal)
 	if err != nil {
 		logger.Log.Info("error during withdrawal", zap.Error(err))

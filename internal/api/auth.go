@@ -26,7 +26,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 		}
 		plaintext := cookie.Value
 		hash := sha256.Sum256([]byte(plaintext))
-		user, err := tokenService.FindUserByToken(context.Background(), hash[:]) // ctx add
+		user, err := tokenService.FindUserByToken(context.Background(), hash[:])
 		if err != nil {
 			switch {
 			case errors.Is(err, ErrRecordNotFound):
@@ -36,6 +36,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 				logger.Log.Info("error", zap.Error(err))
 				rw.WriteHeader(http.StatusInternalServerError)
 			}
+			return
 		}
 		r = contextSetUser(r, user)
 		next.ServeHTTP(rw, r)

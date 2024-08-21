@@ -38,7 +38,6 @@ func writeJSON(rw http.ResponseWriter, status int, data any, headers http.Header
 	if err != nil {
 		return err
 	}
-
 	js = append(js, '\n')
 	for key, value := range headers {
 		rw.Header()[key] = value

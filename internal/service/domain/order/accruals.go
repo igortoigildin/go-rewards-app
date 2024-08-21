@@ -16,12 +16,12 @@ var statusInvalid string = "INVALID"
 var statusProcessed string = "PROCESSED"
 
 func (o *OrderService) UpdateAccruals(cfg *config.Config, order *orderEntity.Order) {
-
 	for order.Status != statusInvalid && order.Status != statusProcessed {
 		url := cfg.FlagAccSysAddr + fmt.Sprintf("/api/orders/%v", order.Number)
 		resp, err := http.Get(url)
 		if err != nil {
 			logger.Log.Info("error while reaching accrual system", zap.Error(err))
+			return
 		}
 
 		newOrder := struct {
@@ -32,6 +32,7 @@ func (o *OrderService) UpdateAccruals(cfg *config.Config, order *orderEntity.Ord
 		err = json.NewDecoder(resp.Body).Decode(&newOrder)
 		if err != nil {
 			logger.Log.Info("error while decoding accrual response", zap.Error(err))
+			return
 		}
 
 		order.Status = newOrder.Status
@@ -41,6 +42,7 @@ func (o *OrderService) UpdateAccruals(cfg *config.Config, order *orderEntity.Ord
 		err = o.OrderRepository.UpdateOrderAndBalance(context.Background(), order)
 		if err != nil {
 			logger.Log.Info("error while updating order with new status", zap.Error(err))
+			return
 		}
 	}
 }

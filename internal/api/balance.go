@@ -17,18 +17,21 @@ func balanceHandler(userService UserService, withdrawalService WithdrawalService
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		currentBalance, err := userService.Balance(ctx, user.UserID)
 		if err != nil {
 			logger.Log.Info("error while obtaining current balance:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		withdraws, err := withdrawalService.WithdrawalsForUser(ctx, user.UserID)
 		if err != nil {
 			logger.Log.Info("error while obtaining withdrawn balance:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		var withdrawnBalance float64
@@ -48,6 +51,7 @@ func balanceHandler(userService UserService, withdrawalService WithdrawalService
 		if err != nil {
 			logger.Log.Info("error while encoding response:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 	})
 }

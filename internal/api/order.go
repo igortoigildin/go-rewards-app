@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
+//go:generate mockgen -package mocks -destination=../../mocks/orderService.go github.com/igortoigildin/go-rewards-app/internal/api OrderService
 type OrderService interface {
 	InsertOrder(ctx context.Context, number string, userID int64) (int64, error)
 	SelectAllByUser(ctx context.Context, userID int64) ([]orderEntity.Order, error)

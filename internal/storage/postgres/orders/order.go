@@ -36,19 +36,16 @@ func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *or
 		order.Accrual,
 		order.Number,
 	}
-
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
-
 	query = `UPDATE users SET balance = balance + $1 WHERE user_id = $2`
 	args = []any{
 		order.Accrual,
 		order.UserID,
 	}
-
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		tx.Rollback()
@@ -59,7 +56,6 @@ func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *or
 
 func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
 	var userID int64
-
 	err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
 	if err != nil {
 		switch {
@@ -69,11 +65,9 @@ func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.
 			return 0, err
 		}
 	}
-
 	if userID != 0 { // order already exists, return
 		return userID, nil
 	}
-
 	query := "INSERT INTO orders (number, status, user_id, uploaded_at)" +
 		"VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')"
 	args := []any{
@@ -81,11 +75,9 @@ func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.
 		order.Status,
 		order.UserID,
 	}
-
 	_, err = rep.db.ExecContext(ctx, query, args...) // insert order accordingly
 	if err != nil {
 		return 0, err
-
 	}
 	return 0, nil
 }
@@ -94,7 +86,6 @@ func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]
 	var orders []orderEntity.Order
 	query := `
 	SELECT number, accrual, status, uploaded_at FROM orders WHERE user_id = $1 ORDER BY uploaded_at;`
-
 	rows, err := rep.db.QueryContext(ctx, query, user)
 	if err != nil {
 		return nil, err
