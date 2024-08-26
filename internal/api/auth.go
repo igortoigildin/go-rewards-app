@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"crypto/sha256"
+	"database/sql"
 	"errors"
 	"net/http"
 
@@ -29,7 +30,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 		user, err := tokenService.FindUserByToken(context.Background(), hash[:])
 		if err != nil {
 			switch {
-			case errors.Is(err, ErrRecordNotFound):
+			case errors.Is(err, sql.ErrNoRows):
 				logger.Log.Info("user with such token not found", zap.Error(err))
 				rw.WriteHeader(http.StatusUnauthorized)
 			default:

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -20,7 +21,7 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 	if err := logger.Initialize(cfg.FlagLogLevel); err != nil {
-		logger.Log.Info("error while initializing logger", zap.Error(err))
+		log.Fatalf("can't initialize logger: %v", err)
 	}
 
 	db, err := sql.Open("pgx", cfg.FlagDBURI)

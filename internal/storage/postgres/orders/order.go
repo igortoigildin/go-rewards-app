@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 )
@@ -25,9 +26,11 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 }
 
 func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *orderEntity.Order) error {
+	const op = "postgres.orders.order.UpdateOrderAndBalance"
+
 	tx, err := rep.db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 	query := `
 	UPDATE orders SET status = $1, accrual = $2 WHERE number = $3`
@@ -38,8 +41,10 @@ func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *or
 	}
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		tx.Rollback()
-		return err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("%s: update order: unable to rollback: %v", op, rollbackErr)
+		}
+		return fmt.Errorf("%s: %w", op, err)
 	}
 	query = `UPDATE users SET balance = balance + $1 WHERE user_id = $2`
 	args = []any{
@@ -48,8 +53,10 @@ func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *or
 	}
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		tx.Rollback()
-		return err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("%s: update order: unable to rollback: %v", op, rollbackErr)
+		}
+		return fmt.Errorf("%s: %w", op, err)
 	}
 	return tx.Commit()
 }

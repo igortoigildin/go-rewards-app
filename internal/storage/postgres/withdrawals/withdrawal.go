@@ -3,6 +3,7 @@ package withdrawal
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	withdrawalEntity "github.com/igortoigildin/go-rewards-app/internal/entities/withdrawal"
 )
@@ -19,6 +20,8 @@ func NewWithdrawalRepository(db *sql.DB) *WithdrawalRepository {
 }
 
 func (rep *WithdrawalRepository) Create(ctx context.Context, withdrawal *withdrawalEntity.Withdrawal) error {
+	const op = "storage.postgres.withdrawal"
+
 	tx, err := rep.db.Begin()
 	if err != nil {
 		return err
@@ -42,8 +45,10 @@ func (rep *WithdrawalRepository) Create(ctx context.Context, withdrawal *withdra
 	}
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		tx.Rollback()
-		return err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("%s: update user: unable to rollback: %v", op, rollbackErr)
+		}
+		return fmt.Errorf("%s: %w", op, err)
 	}
 	return tx.Commit()
 }

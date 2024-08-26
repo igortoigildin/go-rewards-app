@@ -8,10 +8,10 @@ import (
 
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 )
-
-var ErrDuplicateLogin = errors.New("duplicate login")
 
 //go:generate mockgen -package mocks -destination=../mocks/userService.go github.com/igortoigildin/go-rewards-app/internal/api UserService
 type UserService interface {
@@ -57,14 +57,14 @@ func registerUserHandler(userService UserService, tokenService TokenService) htt
 
 		err = userService.Create(ctx, user)
 		if err != nil {
-			switch {
-			case errors.Is(err, ErrDuplicateLogin):
+			var e *pgconn.PgError
+			if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
 				logger.Log.Info("a user with this login already exists", zap.Error(err))
 				rw.WriteHeader(http.StatusConflict)
-			default:
-				logger.Log.Info("error while saving user", zap.Error(err))
-				rw.WriteHeader(http.StatusInternalServerError)
+				return
 			}
+			logger.Log.Info("error while saving user", zap.Error(err))
+			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 

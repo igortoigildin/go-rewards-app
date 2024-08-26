@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"time"
@@ -10,13 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	ErrRecordNotFound = errors.New("no records found")
-)
-
 func createAuthTokenHandler(userService UserService, tokenService TokenService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 		var input struct {
@@ -34,7 +30,7 @@ func createAuthTokenHandler(userService UserService, tokenService TokenService) 
 		user, err := userService.Find(ctx, input.Login)
 		if err != nil {
 			switch {
-			case errors.Is(err, ErrRecordNotFound):
+			case errors.Is(err, sql.ErrNoRows):
 				logger.Log.Info("user not found", zap.Error(err))
 				rw.WriteHeader(http.StatusUnauthorized)
 				return

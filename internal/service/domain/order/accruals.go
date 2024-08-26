@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var statusInvalid string = "INVALID"
-var statusProcessed string = "PROCESSED"
+const statusInvalid string = "INVALID"
+const statusProcessed string = "PROCESSED"
 
 func (o *OrderService) UpdateAccruals(cfg *config.Config, order *orderEntity.Order) {
 	for order.Status != statusInvalid && order.Status != statusProcessed {

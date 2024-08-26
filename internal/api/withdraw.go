@@ -72,6 +72,7 @@ func withdrawalsHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		trans, err := withdrawalService.WithdrawalsForUser(ctx, user.UserID)
