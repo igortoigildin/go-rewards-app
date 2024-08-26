@@ -73,6 +73,7 @@ func registerUserHandler(userService UserService, tokenService TokenService) htt
 		if err != nil {
 			logger.Log.Info("error while ctreating new token", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 
 		// Initialize a new cookie containing the new token create
@@ -83,6 +84,5 @@ func registerUserHandler(userService UserService, tokenService TokenService) htt
 			HttpOnly: true,
 		}
 		http.SetCookie(rw, &cookie)
-		rw.WriteHeader(http.StatusOK)
 	})
 }

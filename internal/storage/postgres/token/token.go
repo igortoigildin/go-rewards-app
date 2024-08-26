@@ -26,7 +26,10 @@ func (rep *TokenRepository) Insert(ctx context.Context, token *userEntity.Token)
 
 	_, err := rep.db.ExecContext(ctx, "INSERT INTO tokens (hash, user_id, expiry)"+
 		"VALUES ($1, $2, $3)", token.Hash, token.UserID, token.Expiry)
-	return fmt.Errorf("%s: user not found: %w", op, err)
+	if err != nil {
+		return fmt.Errorf("%s: user not found: %w", op, err)
+	}
+	return nil
 }
 
 func (rep *TokenRepository) FindUserByToken(ctx context.Context, tokenHash []byte) (*userEntity.User, error) {
