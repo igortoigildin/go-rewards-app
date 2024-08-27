@@ -70,9 +70,7 @@ func main() {
 				continue
 			}
 
-			// fmt.Println(orders)
-
-			jobs := make(chan int64, numJobs)
+			jobs := make(chan order.Order, numJobs)
 			results := make(chan order.Order, numJobs)
 
 			for w := 1; w <= 3; w++ {
@@ -102,9 +100,9 @@ func main() {
 	}
 }
 
-func worker(jobs <-chan int64, results chan<- order.Order, cfg *config.Config) {
+func worker(jobs <-chan order.Order, results chan<- order.Order, cfg *config.Config) {
 	for i := range jobs {
-		url := cfg.FlagAccSysAddr + fmt.Sprintf("/api/orders/%v", i)
+		url := cfg.FlagAccSysAddr + fmt.Sprintf("/api/orders/%v", i.Number)
 
 		fmt.Println("REQUEST:", i)
 
@@ -115,6 +113,9 @@ func worker(jobs <-chan int64, results chan<- order.Order, cfg *config.Config) {
 		}
 
 		var newOrder order.Order
+		newOrder.Number =  i.Number
+		newOrder.UserID = i.UserID
+
 
 		err = json.NewDecoder(resp.Body).Decode(&newOrder)
 		if err != nil {

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 )
 
@@ -114,10 +115,10 @@ func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]
 }
 
 // Select numbers of all new orders.
-func (rep *OrderRepository) SelectForAccrualCalc() ([]int64, error) {
-	var orders []int64
+func (rep *OrderRepository) SelectForAccrualCalc() ([]order.Order, error) {
+	var orders []order.Order
 	query := `
-	SELECT number FROM orders WHERE status = $1 or status = $2`
+	SELECT * FROM orders WHERE status = $1 or status = $2`
 	args := []any{statusNew, statusProcessing}
 	rows, err := rep.db.Query(query, args...)
 	if err != nil {
@@ -125,8 +126,8 @@ func (rep *OrderRepository) SelectForAccrualCalc() ([]int64, error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		var order int64
-		err = rows.Scan(&order)
+		var order order.Order
+		err = rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt, &order.UserID)
 		if err != nil {
 			return nil, err
 		}
