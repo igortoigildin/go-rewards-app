@@ -10,6 +10,7 @@ import (
 
 	"github.com/igortoigildin/go-rewards-app/config"
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
+	ctxPac "github.com/igortoigildin/go-rewards-app/internal/lib/context"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"go.uber.org/zap"
 )
@@ -27,7 +28,7 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
-		user, err := contextGetUser(r)
+		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -83,7 +84,7 @@ func allOrdersHandler(orderService OrderService) http.HandlerFunc {
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
-		user, err := contextGetUser(r)
+		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
