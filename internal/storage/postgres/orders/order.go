@@ -8,8 +8,6 @@ import (
 
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgerrcode"
 	"go.uber.org/zap"
 )
 
@@ -65,57 +63,34 @@ func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *or
 	return tx.Commit()
 }
 
+// Inserts order and returns 0 in case of success. Otherwise, return id of user who inserted this order before.
 func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
-	// var userID int64
-	// err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
-	// if err != nil {
-	// 	switch {
-	// 	case errors.Is(err, sql.ErrNoRows):
-	// 		// no such order exists
-	// 	default:
-	// 		return 0, err
-	// 	}
-	// }
-	// if userID != 0 { // order already exists, return
-	// 	return userID, nil
-	// }
-	// query := `INSERT INTO orders (number, status, user_id, uploaded_at)
-	// 	VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')`
-	// args := []any{
-	// 	order.Number,
-	// 	order.Status,
-	// 	order.UserID,
-	// }
-	// _, err = rep.db.ExecContext(ctx, query, args...) // insert order accordingly
-	// if err != nil {
-	// 	return 0, err
-	// }
-	//
-	var userID int64
-	query := `INSERT INTO orders (number, status, user_id, uploaded_at)
-	VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')`
-	args := []any{
-		order.Number,
-		order.Status,
-		order.UserID,
-	}
-	_, err := rep.db.ExecContext(ctx, query, args...) // insert order accordingly
-	if err != nil {
-		var e *pgconn.PgError	
-		switch {
-		case errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation:
-			logger.Log.Info("such order already exists", zap.Error(err))
+    var userID int64
+    query := `INSERT INTO orders (number, status, user_id, uploaded_at)
+    VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK') ON CONFLICT DO NOTHING RETURNING user_id`
+    args := []any{
+        order.Number,
+        order.Status,
+        order.UserID,
+    }
 
-			err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
-			if err != nil {
-				return userID, err
-			}
-		default:
-			logger.Log.Error("error while inserting order", zap.Error(err))
-			return 0, err
-		}
-	}
-	return 0, nil
+    err := rep.db.QueryRowContext(ctx, query, args...).Scan(&userID) 
+    if err != nil {
+        switch {
+        case errors.Is(err, sql.ErrNoRows):
+            // order already exists, check who already inserted it before
+            var userID int64
+            err = rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
+            if err != nil {
+                return userID, err
+            }
+            return userID, nil
+        default:
+            logger.Log.Error("error while inserting order", zap.Error(err))
+            return 0, err
+        }
+    }
+    return 0, nil
 }
 
 func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error) {
