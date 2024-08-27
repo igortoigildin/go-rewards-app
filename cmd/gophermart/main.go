@@ -70,7 +70,7 @@ func main() {
 				continue
 			}
 
-			fmt.Println(orders)
+			// fmt.Println(orders)
 
 			jobs := make(chan int64, numJobs)
 			results := make(chan order.Order, numJobs)
@@ -106,6 +106,8 @@ func worker(jobs <-chan int64, results chan<- order.Order, cfg *config.Config) {
 	for i := range jobs {
 		url := cfg.FlagAccSysAddr + fmt.Sprintf("/api/orders/%v", i)
 
+		fmt.Println("REQUEST:", i)
+
 		resp, err := http.Get(url)
 		if err != nil {
 			logger.Log.Info("error while reaching accrual system", zap.Error(err))
@@ -125,6 +127,8 @@ func worker(jobs <-chan int64, results chan<- order.Order, cfg *config.Config) {
 			return
 		}
 		resp.Body.Close()
+
+		fmt.Println("RESPONSE: ", newOrder)
 
 		results <- newOrder
 	}
