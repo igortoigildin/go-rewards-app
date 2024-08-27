@@ -101,15 +101,18 @@ func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.
 	}
 	_, err := rep.db.ExecContext(ctx, query, args...) // insert order accordingly
 	if err != nil {
-		var e *pgconn.PgError
-		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+		var e *pgconn.PgError	
+		switch {
+		case errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation:
 			logger.Log.Info("such order already exists", zap.Error(err))
 
 			err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
 			if err != nil {
 				return userID, err
 			}
-			return userID, nil
+		default:
+			logger.Log.Error("error while inserting order", zap.Error(err))
+			return 0, err
 		}
 	}
 	return 0, nil
