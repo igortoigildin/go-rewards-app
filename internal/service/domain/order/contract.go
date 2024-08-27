@@ -3,7 +3,6 @@ package order
 import (
 	"context"
 
-	"github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 )
 
@@ -11,6 +10,6 @@ import (
 type OrderRepository interface {
 	InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error)
 	SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error)
-	SelectForAccrualCalc() ([]order.Order, error) 
+	SelectForAccrualCalc() ([]orderEntity.Order, error) 
 	UpdateOrderAndBalance(ctx context.Context, order *orderEntity.Order) error
 }

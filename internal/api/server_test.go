@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/igortoigildin/go-rewards-app/config"
 	modelUser "github.com/igortoigildin/go-rewards-app/internal/entities/user"
 	modelWithdrawal "github.com/igortoigildin/go-rewards-app/internal/entities/withdrawal"
 	"github.com/igortoigildin/go-rewards-app/mocks"
@@ -142,14 +141,12 @@ func Test_withdrawHandler(t *testing.T) {
 func Test_insertOrderHandler(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	w := mocks.NewMockOrderService(ctrl)
-	cfg := config.LoadConfig()
 
 	w.EXPECT().InsertOrder(gomock.Any(), "12345678903", int64(1)).Times(1).Return(int64(1), nil)
 	w.EXPECT().InsertOrder(gomock.Any(), "12345678903", int64(5)).Times(1).Return(int64(2), nil)
 	w.EXPECT().InsertOrder(gomock.Any(), "4745545873", int64(1)).Times(1).Return(int64(0), nil)
-	w.EXPECT().UpdateAccruals(cfg, gomock.Any()).Times(1)
 
-	handler := insertOrderHandler(w, cfg)
+	handler := insertOrderHandler(w)
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
 
@@ -191,7 +188,7 @@ func Test_insertOrderHandler(t *testing.T) {
 			}
 
 			req = contextSetUser(req, &user)
-			handler := insertOrderHandler(w, cfg)
+			handler := insertOrderHandler(w)
 			srv := httptest.NewServer(handler)
 			defer srv.Close()
 
@@ -204,3 +201,5 @@ func Test_insertOrderHandler(t *testing.T) {
 		})
 	}
 }
+
+

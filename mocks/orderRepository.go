@@ -66,10 +66,10 @@ func (mr *MockOrderRepositoryMockRecorder) SelectAllByUser(arg0, arg1 interface{
 }
 
 // SelectForAccrualCalc mocks base method.
-func (m *MockOrderRepository) SelectForAccrualCalc() ([]int64, error) {
+func (m *MockOrderRepository) SelectForAccrualCalc() ([]order.Order, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SelectForAccrualCalc")
-	ret0, _ := ret[0].([]int64)
+	ret0, _ := ret[0].([]order.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
