@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 
@@ -109,6 +110,11 @@ func worker(jobs <-chan int64, results chan<- order.Order, cfg *config.Config) {
 
 		err = json.NewDecoder(resp.Body).Decode(&newOrder)
 		if err != nil {
+			if err == io.EOF {
+				logger.Log.Info("EOF response, continue")
+				resp.Body.Close()
+				continue
+			}
 			logger.Log.Info("error while decoding accrual response", zap.Error(err))
 			return
 		}
