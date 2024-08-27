@@ -66,6 +66,12 @@ func main() {
 			}
 			var numJobs = len(orders)
 
+			if numJobs == 0 {
+				continue
+			}
+
+			fmt.Println(orders)
+
 			jobs := make(chan int64, numJobs)
 			results := make(chan order.Order, numJobs)
 
