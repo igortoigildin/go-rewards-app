@@ -60,13 +60,13 @@ func insertOrderHandler(orderService OrderService, cfg *config.Config) http.Hand
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		var accraualValue float64
-		order := orderEntity.Order{
-			Number:  string(number),
-			Status:  "NEW",
-			Accrual: &accraualValue,
-			UserID:  user.UserID,
-		}
+		// var accraualValue float64
+		// order := orderEntity.Order{
+		// 	Number:  string(number),
+		// 	Status:  "NEW",
+		// 	Accrual: &accraualValue,
+		// 	UserID:  user.UserID,
+		// }
 
 		switch {
 		case id == user.UserID:
@@ -76,7 +76,7 @@ func insertOrderHandler(orderService OrderService, cfg *config.Config) http.Hand
 		case id == 0:
 			logger.Log.Info("order added successfully")
 			rw.WriteHeader(http.StatusAccepted)
-			go orderService.UpdateAccruals(cfg, &order) // Send reqest to accrual api
+			// go orderService.UpdateAccruals(cfg, &order) // Send reqest to accrual api
 			return
 		default:
 			logger.Log.Info("this order already added by another user")
