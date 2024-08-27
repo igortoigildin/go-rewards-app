@@ -26,6 +26,7 @@ func (rep *WithdrawalRepository) Create(ctx context.Context, withdrawal *withdra
 	if err != nil {
 		return err
 	}
+
 	query := `
 	INSERT INTO withdrawals (order_id, sum, user_id, date) VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')`
 	args := []any{
@@ -35,7 +36,9 @@ func (rep *WithdrawalRepository) Create(ctx context.Context, withdrawal *withdra
 	}
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		tx.Rollback()
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return fmt.Errorf("%s: insert withdrawal: unable to rollback: %v", op, rollbackErr)
+		}
 		return err
 	}
 	query = `UPDATE users SET balance = balance - $1 WHERE user_id = $2`

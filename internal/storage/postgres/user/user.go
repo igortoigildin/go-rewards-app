@@ -22,8 +22,8 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 func (rep *UserRepository) Create(ctx context.Context, user *userEntity.User) error {
 	const op = "storage.postgres.user.Create"
 
-	err := rep.db.QueryRowContext(ctx, "INSERT INTO users (login, password_hash, balance)"+
-		"VALUES ($1, $2, $3) RETURNING user_id", user.Login, user.Password.Hash, user.Balance).Scan(&user.UserID)
+	err := rep.db.QueryRowContext(ctx, `INSERT INTO users (login, password_hash, balance)
+		VALUES ($1, $2, $3) RETURNING user_id`, user.Login, user.Password.Hash, user.Balance).Scan(&user.UserID)
 	if err != nil {
 		return fmt.Errorf("%s: cannot create user: %w", op, err)
 	}

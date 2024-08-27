@@ -7,6 +7,10 @@ import (
 	"fmt"
 
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
+	"github.com/igortoigildin/go-rewards-app/internal/logger"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
+	"go.uber.org/zap"
 )
 
 const (
@@ -62,29 +66,51 @@ func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *or
 }
 
 func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
+	// var userID int64
+	// err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
+	// if err != nil {
+	// 	switch {
+	// 	case errors.Is(err, sql.ErrNoRows):
+	// 		// no such order exists
+	// 	default:
+	// 		return 0, err
+	// 	}
+	// }
+	// if userID != 0 { // order already exists, return
+	// 	return userID, nil
+	// }
+	// query := `INSERT INTO orders (number, status, user_id, uploaded_at)
+	// 	VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')`
+	// args := []any{
+	// 	order.Number,
+	// 	order.Status,
+	// 	order.UserID,
+	// }
+	// _, err = rep.db.ExecContext(ctx, query, args...) // insert order accordingly
+	// if err != nil {
+	// 	return 0, err
+	// }
+	//
 	var userID int64
-	err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			// no such order exists
-		default:
-			return 0, err
-		}
-	}
-	if userID != 0 { // order already exists, return
-		return userID, nil
-	}
-	query := "INSERT INTO orders (number, status, user_id, uploaded_at)" +
-		"VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')"
+	query := `INSERT INTO orders (number, status, user_id, uploaded_at)
+	VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK')`
 	args := []any{
 		order.Number,
 		order.Status,
 		order.UserID,
 	}
-	_, err = rep.db.ExecContext(ctx, query, args...) // insert order accordingly
+	_, err := rep.db.ExecContext(ctx, query, args...) // insert order accordingly
 	if err != nil {
-		return 0, err
+		var e *pgconn.PgError
+		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+			logger.Log.Info("such order already exists", zap.Error(err))
+
+			err := rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
+			if err != nil {
+				return userID, err
+			}
+			return userID, nil
+		}
 	}
 	return 0, nil
 }
