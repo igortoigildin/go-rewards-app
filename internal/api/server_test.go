@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	modelUser "github.com/igortoigildin/go-rewards-app/internal/entities/user"
 	modelWithdrawal "github.com/igortoigildin/go-rewards-app/internal/entities/withdrawal"
+	ctxPac "github.com/igortoigildin/go-rewards-app/internal/lib/context"
 	"github.com/igortoigildin/go-rewards-app/mocks"
 )
 
@@ -58,7 +59,7 @@ func Test_balanceHandler(t *testing.T) {
 	user := modelUser.User{
 		UserID: int64(1),
 	}
-	req = contextSetUser(req, &user)
+	req = ctxPac.ContextSetUser(req, &user)
 	req.AddCookie(&http.Cookie{Name: "token", Value: "dummy_cookie"})
 	ctrl := gomock.NewController(t)
 	u := mocks.NewMockUserService(ctrl)
@@ -119,7 +120,7 @@ func Test_withdrawHandler(t *testing.T) {
 	user := modelUser.User{
 		UserID: int64(1),
 	}
-	req = contextSetUser(req, &user)
+	req = ctxPac.ContextSetUser(req, &user)
 
 	ctrl := gomock.NewController(t)
 	w := mocks.NewMockWithdrawalService(ctrl)
@@ -187,7 +188,7 @@ func Test_insertOrderHandler(t *testing.T) {
 				UserID: tc.userID,
 			}
 
-			req = contextSetUser(req, &user)
+			req = ctxPac.ContextSetUser(req, &user)
 			handler := insertOrderHandler(w)
 			srv := httptest.NewServer(handler)
 			defer srv.Close()
@@ -201,5 +202,3 @@ func Test_insertOrderHandler(t *testing.T) {
 		})
 	}
 }
-
-

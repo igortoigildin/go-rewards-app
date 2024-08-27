@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	processJSON "github.com/igortoigildin/go-rewards-app/internal/lib/processJSON"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"go.uber.org/zap"
 )
@@ -20,7 +21,7 @@ func createAuthTokenHandler(userService UserService, tokenService TokenService) 
 			Password string `json:"password"`
 		}
 
-		err := readJSON(r, &input)
+		err := processJSON.ReadJSON(r, &input)
 		if err != nil {
 			logger.Log.Info("cannot decode request JSON body", zap.Error(err))
 			rw.WriteHeader(http.StatusBadRequest)
@@ -69,7 +70,7 @@ func createAuthTokenHandler(userService UserService, tokenService TokenService) 
 		}
 		http.SetCookie(rw, &cookie)
 
-		err = writeJSON(rw, http.StatusOK, token, nil)
+		err = processJSON.WriteJSON(rw, http.StatusOK, token, nil)
 		if err != nil {
 			logger.Log.Info("error while encoding response", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)

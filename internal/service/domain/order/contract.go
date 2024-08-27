@@ -10,6 +10,6 @@ import (
 type OrderRepository interface {
 	InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error)
 	SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error)
-	SelectForAccrualCalc() ([]orderEntity.Order, error) 
+	SelectForAccrualCalc() ([]orderEntity.Order, error)
 	UpdateOrderAndBalance(ctx context.Context, order *orderEntity.Order) error
 }

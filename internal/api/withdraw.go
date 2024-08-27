@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	model "github.com/igortoigildin/go-rewards-app/internal/entities/withdrawal"
+	ctxPac "github.com/igortoigildin/go-rewards-app/internal/lib/context"
+	processJSON "github.com/igortoigildin/go-rewards-app/internal/lib/processJSON"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"github.com/igortoigildin/go-rewards-app/internal/service"
 	"go.uber.org/zap"
@@ -23,7 +25,7 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
-		user, err := contextGetUser(r)
+		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -35,7 +37,7 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 			Sum   float64 `json:"sum"`
 		}{}
 
-		err = readJSON(r, &order)
+		err = processJSON.ReadJSON(r, &order)
 		if err != nil {
 			logger.Log.Info("error while decoding json:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -68,7 +70,7 @@ func withdrawalsHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
-		user, err := contextGetUser(r)
+		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -87,7 +89,7 @@ func withdrawalsHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 				return
 			}
 		}
-		err = writeJSON(rw, http.StatusOK, trans, nil)
+		err = processJSON.WriteJSON(rw, http.StatusOK, trans, nil)
 		if err != nil {
 			logger.Log.Info("error while encoding response", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)

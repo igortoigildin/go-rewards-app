@@ -7,6 +7,7 @@ import (
 	"time"
 
 	userEntity "github.com/igortoigildin/go-rewards-app/internal/entities/user"
+	processJSON "github.com/igortoigildin/go-rewards-app/internal/lib/processJSON"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -35,7 +36,7 @@ func registerUserHandler(userService UserService, tokenService TokenService) htt
 			Login    string `json:"login"`
 			Password string `json:"password"`
 		}
-		err := readJSON(r, &input)
+		err := processJSON.ReadJSON(r, &input)
 		if err != nil {
 			logger.Log.Info("cannot decode request JSON body", zap.Error(err))
 			rw.WriteHeader(http.StatusBadRequest)

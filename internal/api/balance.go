@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	ctxPac "github.com/igortoigildin/go-rewards-app/internal/lib/context"
+	processJSON "github.com/igortoigildin/go-rewards-app/internal/lib/processJSON"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"go.uber.org/zap"
 )
@@ -13,7 +15,7 @@ func balanceHandler(userService UserService, withdrawalService WithdrawalService
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 
-		user, err := contextGetUser(r)
+		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -47,7 +49,7 @@ func balanceHandler(userService UserService, withdrawalService WithdrawalService
 			Withdrawn: float64(withdrawnBalance),
 		}
 
-		err = writeJSON(rw, http.StatusOK, data, nil)
+		err = processJSON.WriteJSON(rw, http.StatusOK, data, nil)
 		if err != nil {
 			logger.Log.Info("error while encoding response:", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)

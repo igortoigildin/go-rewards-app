@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 
+	ctx "github.com/igortoigildin/go-rewards-app/internal/lib/context"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"go.uber.org/zap"
 )
@@ -39,7 +40,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 			}
 			return
 		}
-		r = contextSetUser(r, user)
+		r = ctx.ContextSetUser(r, user)
 		next.ServeHTTP(rw, r)
 	})
 }
