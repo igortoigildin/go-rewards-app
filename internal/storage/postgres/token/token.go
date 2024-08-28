@@ -24,8 +24,8 @@ func NewTokenRepository(db *sql.DB) *TokenRepository {
 func (rep *TokenRepository) Insert(ctx context.Context, token *userEntity.Token) error {
 	const op = "storage.postgres.token.Insert"
 
-	_, err := rep.db.ExecContext(ctx, "INSERT INTO tokens (hash, user_id, expiry)"+
-		"VALUES ($1, $2, $3)", token.Hash, token.UserID, token.Expiry)
+	_, err := rep.db.ExecContext(ctx, `INSERT INTO tokens (hash, user_id, expiry)
+		VALUES ($1, $2, $3)`, token.Hash, token.UserID, token.Expiry)
 	if err != nil {
 		return fmt.Errorf("%s: user not found: %w", op, err)
 	}

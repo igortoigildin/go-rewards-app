@@ -1,4 +1,4 @@
-package api
+package validate
 
 import (
 	"strconv"

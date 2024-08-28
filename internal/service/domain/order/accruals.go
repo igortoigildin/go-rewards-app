@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/igortoigildin/go-rewards-app/config"
@@ -20,9 +21,12 @@ const statusInvalid string = "INVALID"
 const statusProcessed string = "PROCESSED"
 
 // Selects orders with status "NEW" or "PROCESSING" and sends it to accruals API.
-func (o *OrderService) SendOrdersToAccrualAPI(cfg *config.Config) {
+func (o *OrderService) SendOrdersToAccrualAPI(ctx context.Context, cfg *config.Config) {
 	for {
-		orders, err := o.OrderRepository.SelectForAccrualCalc()
+		ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimout)
+		defer cancel()
+
+		orders, err := o.OrderRepository.SelectForAccrualCalc(ctx)
 		if err != nil {
 			// check if no new orders with status "INVALID" or "PROCESSING" available
 			if errors.Is(err, sql.ErrNoRows) {
@@ -33,13 +37,17 @@ func (o *OrderService) SendOrdersToAccrualAPI(cfg *config.Config) {
 			return
 		}
 		var numJobs = len(orders)
-
+		var wg sync.WaitGroup
 		newOrdersChan := make(chan order.Order, numJobs) // chan for jobs
 		results := make(chan order.Order, numJobs)       // chan for results
 
 		// Worker pool
 		for w := 1; w <= cfg.FlagRateLimit; w++ {
-			go processOrders(newOrdersChan, results, cfg)
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				processOrders(newOrdersChan, results, cfg)
+			}()
 		}
 
 		// Send selected new orders to jobs (newOrdersChan) chan
@@ -56,12 +64,14 @@ func (o *OrderService) SendOrdersToAccrualAPI(cfg *config.Config) {
 				newOrdersChan <- order
 				continue
 			}
-			err = o.OrderRepository.UpdateOrderAndBalance(context.Background(), &order)
+			err = o.OrderRepository.UpdateOrderAndBalance(ctx, &order)
 			if err != nil {
 				logger.Log.Info("error while updating order with new status", zap.Error(err))
 				return
 			}
 		}
+
+		wg.Wait()
 	}
 }
 
@@ -77,10 +87,10 @@ func processOrders(newOrdersChan chan order.Order, results chan<- order.Order, c
 			return
 		}
 		switch resp.StatusCode {
-		case 204:
+		case http.StatusNoContent:
 			logger.Log.Info("order number not registered in accrual system")
 			continue
-		case 429:
+		case http.StatusTooManyRequests:
 			wait(resp)
 		}
 
@@ -100,13 +110,15 @@ func processOrders(newOrdersChan chan order.Order, results chan<- order.Order, c
 }
 
 // Get "Retry-After" header from response and pause accoringly before next attempt.
-// If not such header received, wait 30 sec.
+// If not such header received, wait 30 sec by default.
 func wait(resp *http.Response) {
 	logger.Log.Info("accrual system response: too many requests")
 	headers := resp.Header["Retry-After"]
 	waitTime, err := strconv.Atoi(headers[0])
 	if err != nil {
 		logger.Log.Error("error while converting time pause", zap.Error(err))
+	}
+	if waitTime == 0 {
 		waitTime = 30
 	}
 	time.Sleep(time.Duration(waitTime) * time.Second)

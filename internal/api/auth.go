@@ -1,19 +1,19 @@
 package api
 
 import (
-	"context"
 	"crypto/sha256"
 	"database/sql"
 	"errors"
 	"net/http"
 
-	ctx "github.com/igortoigildin/go-rewards-app/internal/lib/context"
+	lib "github.com/igortoigildin/go-rewards-app/internal/lib/context"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"go.uber.org/zap"
 )
 
 func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		cookie, err := r.Cookie("token")
 		if err != nil {
 			switch {
@@ -28,7 +28,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 		}
 		plaintext := cookie.Value
 		hash := sha256.Sum256([]byte(plaintext))
-		user, err := tokenService.FindUserByToken(context.Background(), hash[:])
+		user, err := tokenService.FindUserByToken(ctx, hash[:])
 		if err != nil {
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
@@ -40,7 +40,7 @@ func auth(tokenService TokenService, next http.HandlerFunc) http.HandlerFunc {
 			}
 			return
 		}
-		r = ctx.ContextSetUser(r, user)
+		r = lib.ContextSetUser(r, user)
 		next.ServeHTTP(rw, r)
 	})
 }

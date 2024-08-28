@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"net/http"
 
 	ctxPac "github.com/igortoigildin/go-rewards-app/internal/lib/context"
@@ -12,8 +11,7 @@ import (
 
 func balanceHandler(userService UserService, withdrawalService WithdrawalService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
+		ctx := r.Context()
 
 		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {

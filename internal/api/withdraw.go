@@ -9,6 +9,7 @@ import (
 	model "github.com/igortoigildin/go-rewards-app/internal/entities/withdrawal"
 	ctxPac "github.com/igortoigildin/go-rewards-app/internal/lib/context"
 	processJSON "github.com/igortoigildin/go-rewards-app/internal/lib/processJSON"
+	validate "github.com/igortoigildin/go-rewards-app/internal/lib/validate"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"github.com/igortoigildin/go-rewards-app/internal/service"
 	"go.uber.org/zap"
@@ -22,9 +23,7 @@ type WithdrawalService interface {
 
 func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
-
+		ctx := r.Context()
 		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
@@ -44,7 +43,7 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 			return
 		}
 
-		valid, err := ValidateOrder(order.Order)
+		valid, err := validate.ValidateOrder(order.Order)
 		if err != nil || !valid {
 			logger.Log.Info("error while validating order:", zap.Error(err))
 			rw.WriteHeader(http.StatusUnprocessableEntity)
@@ -67,9 +66,7 @@ func withdrawHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 
 func withdrawalsHandler(withdrawalService WithdrawalService) http.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
-
+		ctx := r.Context()
 		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))

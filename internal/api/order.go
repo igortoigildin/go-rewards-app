@@ -11,6 +11,7 @@ import (
 	"github.com/igortoigildin/go-rewards-app/config"
 	orderEntity "github.com/igortoigildin/go-rewards-app/internal/entities/order"
 	ctxPac "github.com/igortoigildin/go-rewards-app/internal/lib/context"
+	validate "github.com/igortoigildin/go-rewards-app/internal/lib/validate"
 	"github.com/igortoigildin/go-rewards-app/internal/logger"
 	"go.uber.org/zap"
 )
@@ -19,15 +20,12 @@ import (
 type OrderService interface {
 	InsertOrder(ctx context.Context, number string, userID int64) (int64, error)
 	SelectAllByUser(ctx context.Context, userID int64) ([]orderEntity.Order, error)
-	SendOrdersToAccrualAPI(cfg *config.Config)
+	SendOrdersToAccrualAPI(ctx context.Context, cfg *config.Config)
 }
 
 func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
-
+		ctx := r.Context()
 		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))
@@ -41,6 +39,7 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			rw.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		order := string(number)
 
 		if len(number) == 0 {
 			logger.Log.Info("order not provided", zap.Error(err))
@@ -48,14 +47,14 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 			return
 		}
 
-		valid, err := ValidateOrder(string(number))
+		valid, err := validate.ValidateOrder(order)
 		if err != nil || !valid {
 			logger.Log.Info("error while validating order:", zap.Error(err))
 			rw.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 
-		id, err := orderService.InsertOrder(ctx, string(number), user.UserID)
+		id, err := orderService.InsertOrder(ctx, order, user.UserID)
 		if err != nil {
 			logger.Log.Info("error while inserting order", zap.Error(err))
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -81,9 +80,7 @@ func insertOrderHandler(orderService OrderService) http.HandlerFunc {
 
 func allOrdersHandler(orderService OrderService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
-
+		ctx := r.Context()
 		user, err := ctxPac.ContextGetUser(r)
 		if err != nil {
 			logger.Log.Info("missing user info:", zap.Error(err))

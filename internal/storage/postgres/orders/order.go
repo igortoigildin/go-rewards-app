@@ -65,32 +65,32 @@ func (rep *OrderRepository) UpdateOrderAndBalance(ctx context.Context, order *or
 
 // Inserts order and returns 0 in case of success. Otherwise, return id of user who inserted this order before.
 func (rep *OrderRepository) InsertOrder(ctx context.Context, order *orderEntity.Order) (int64, error) {
-    var userID int64
-    query := `INSERT INTO orders (number, status, user_id, uploaded_at)
+	var userID int64
+	query := `INSERT INTO orders (number, status, user_id, uploaded_at)
     VALUES ($1, $2, $3, now() AT TIME ZONE 'MSK') ON CONFLICT DO NOTHING RETURNING user_id`
-    args := []any{
-        order.Number,
-        order.Status,
-        order.UserID,
-    }
+	args := []any{
+		order.Number,
+		order.Status,
+		order.UserID,
+	}
 
-    err := rep.db.QueryRowContext(ctx, query, args...).Scan(&userID) 
-    if err != nil {
-        switch {
-        case errors.Is(err, sql.ErrNoRows):
-            // order already exists, check who already inserted it before
-            var userID int64
-            err = rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
-            if err != nil {
-                return userID, err
-            }
-            return userID, nil
-        default:
-            logger.Log.Error("error while inserting order", zap.Error(err))
-            return 0, err
-        }
-    }
-    return 0, nil
+	err := rep.db.QueryRowContext(ctx, query, args...).Scan(&userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			// order already exists, check who already inserted it before
+			var userID int64
+			err = rep.db.QueryRowContext(ctx, `SELECT user_id FROM orders WHERE number = $1;`, order.Number).Scan(&userID)
+			if err != nil {
+				return userID, err
+			}
+			return userID, nil
+		default:
+			logger.Log.Error("error while inserting order", zap.Error(err))
+			return 0, err
+		}
+	}
+	return 0, nil
 }
 
 func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]orderEntity.Order, error) {
@@ -118,7 +118,7 @@ func (rep *OrderRepository) SelectAllByUser(ctx context.Context, user int64) ([]
 }
 
 // Select numbers of all new orders.
-func (rep *OrderRepository) SelectForAccrualCalc() ([]orderEntity.Order, error) {
+func (rep *OrderRepository) SelectForAccrualCalc(ctx context.Context) ([]orderEntity.Order, error) {
 	var orders []orderEntity.Order
 	query := `
 	SELECT * FROM orders WHERE status = $1 or status = $2`

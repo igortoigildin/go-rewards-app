@@ -29,9 +29,7 @@ type TokenService interface {
 
 func registerUserHandler(userService UserService, tokenService TokenService) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
-
+		ctx := r.Context()
 		var input struct {
 			Login    string `json:"login"`
 			Password string `json:"password"`

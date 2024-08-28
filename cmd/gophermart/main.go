@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"log"
@@ -21,8 +22,9 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 	if err := logger.Initialize(cfg.FlagLogLevel); err != nil {
-		log.Fatalf("can't initialize logger: %v", err)
+		log.Fatalf("cannot initialize logger: %v", err)
 	}
+	ctx := context.Background()
 
 	db, err := sql.Open("pgx", cfg.FlagDBURI)
 	if err != nil {
@@ -53,7 +55,7 @@ func main() {
 	repository := storage.NewRepository(db)
 	services := service.NewService(repository)
 
-	go services.OrderService.SendOrdersToAccrualAPI(cfg)
+	go services.OrderService.SendOrdersToAccrualAPI(ctx, cfg)
 
 	err = http.ListenAndServe(cfg.FlagRunAddr, api.Router(services, cfg))
 	if err != nil {

@@ -15,6 +15,7 @@ type Config struct {
 	FlagAttemptInterval int
 	FlagRateLimit       int // amount of goroutines being sent to accrual system for recalculation
 	PauseDuration       time.Duration
+	ContextTimout       time.Duration
 }
 
 func LoadConfig() *Config {
@@ -39,6 +40,7 @@ func LoadConfig() *Config {
 		cfg.FlagLogLevel = envLogLevel
 	}
 	cfg.PauseDuration = time.Duration(cfg.FlagAttemptInterval) * time.Second
+	cfg.ContextTimout = 10 * time.Second
 	return cfg
 }
 

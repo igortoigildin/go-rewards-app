@@ -67,13 +67,13 @@ func (mr *MockOrderServiceMockRecorder) SelectAllByUser(arg0, arg1 interface{}) 
 }
 
 // SendOrdersToAccrualAPI mocks base method.
-func (m *MockOrderService) SendOrdersToAccrualAPI(arg0 *config.Config) {
+func (m *MockOrderService) SendOrdersToAccrualAPI(arg0 context.Context, arg1 *config.Config) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SendOrdersToAccrualAPI", arg0)
+	m.ctrl.Call(m, "SendOrdersToAccrualAPI", arg0, arg1)
 }
 
 // SendOrdersToAccrualAPI indicates an expected call of SendOrdersToAccrualAPI.
-func (mr *MockOrderServiceMockRecorder) SendOrdersToAccrualAPI(arg0 interface{}) *gomock.Call {
+func (mr *MockOrderServiceMockRecorder) SendOrdersToAccrualAPI(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendOrdersToAccrualAPI", reflect.TypeOf((*MockOrderService)(nil).SendOrdersToAccrualAPI), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendOrdersToAccrualAPI", reflect.TypeOf((*MockOrderService)(nil).SendOrdersToAccrualAPI), arg0, arg1)
 }

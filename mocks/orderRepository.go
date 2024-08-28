@@ -66,18 +66,18 @@ func (mr *MockOrderRepositoryMockRecorder) SelectAllByUser(arg0, arg1 interface{
 }
 
 // SelectForAccrualCalc mocks base method.
-func (m *MockOrderRepository) SelectForAccrualCalc() ([]order.Order, error) {
+func (m *MockOrderRepository) SelectForAccrualCalc(arg0 context.Context) ([]order.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectForAccrualCalc")
+	ret := m.ctrl.Call(m, "SelectForAccrualCalc", arg0)
 	ret0, _ := ret[0].([]order.Order)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SelectForAccrualCalc indicates an expected call of SelectForAccrualCalc.
-func (mr *MockOrderRepositoryMockRecorder) SelectForAccrualCalc() *gomock.Call {
+func (mr *MockOrderRepositoryMockRecorder) SelectForAccrualCalc(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectForAccrualCalc", reflect.TypeOf((*MockOrderRepository)(nil).SelectForAccrualCalc))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectForAccrualCalc", reflect.TypeOf((*MockOrderRepository)(nil).SelectForAccrualCalc), arg0)
 }
 
 // UpdateOrderAndBalance mocks base method.
