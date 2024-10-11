@@ -23,7 +23,8 @@ const statusProcessed string = "PROCESSED"
 // Selects orders with status "NEW" or "PROCESSING" and sends it to accruals API.
 func (o *OrderService) SendOrdersToAccrualAPI(ctx context.Context, cfg *config.Config) {
 	for {
-		ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimout)
+		func () {
+			ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimout)
 		defer cancel()
 
 		orders, err := o.OrderRepository.SelectForAccrualCalc(ctx)
@@ -31,7 +32,7 @@ func (o *OrderService) SendOrdersToAccrualAPI(ctx context.Context, cfg *config.C
 			// check if no new orders with status "INVALID" or "PROCESSING" available
 			if errors.Is(err, sql.ErrNoRows) {
 				time.Sleep(1 * time.Second)
-				continue
+				return
 			}
 			logger.Log.Error("error while obtaining orders for accrual calcs", zap.Error(err))
 			return
@@ -72,6 +73,7 @@ func (o *OrderService) SendOrdersToAccrualAPI(ctx context.Context, cfg *config.C
 		}
 
 		wg.Wait()
+		}()
 	}
 }
 
