@@ -23,56 +23,56 @@ const statusProcessed string = "PROCESSED"
 // Selects orders with status "NEW" or "PROCESSING" and sends it to accruals API.
 func (o *OrderService) SendOrdersToAccrualAPI(ctx context.Context, cfg *config.Config) {
 	for {
-		func () {
+		func() {
 			ctx, cancel := context.WithTimeout(ctx, cfg.ContextTimout)
-		defer cancel()
+			defer cancel()
 
-		orders, err := o.OrderRepository.SelectForAccrualCalc(ctx)
-		if err != nil {
-			// check if no new orders with status "INVALID" or "PROCESSING" available
-			if errors.Is(err, sql.ErrNoRows) {
-				time.Sleep(1 * time.Second)
-				return
-			}
-			logger.Log.Error("error while obtaining orders for accrual calcs", zap.Error(err))
-			return
-		}
-		var numJobs = len(orders)
-		var wg sync.WaitGroup
-		newOrdersChan := make(chan order.Order, numJobs) // chan for jobs
-		results := make(chan order.Order, numJobs)       // chan for results
-
-		// Worker pool
-		for w := 1; w <= cfg.FlagRateLimit; w++ {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				processOrders(newOrdersChan, results, cfg)
-			}()
-		}
-
-		// Send selected new orders to jobs (newOrdersChan) chan
-		for _, v := range orders {
-			newOrdersChan <- v
-		}
-		close(newOrdersChan)
-
-		// Read from results chan
-		for a := 1; a <= numJobs; a++ {
-			order := <-results
-			// If recievied order status not expected - resend order to jobs chan
-			if order.Status != statusInvalid && order.Status != statusProcessed {
-				newOrdersChan <- order
-				continue
-			}
-			err = o.OrderRepository.UpdateOrderAndBalance(ctx, &order)
+			orders, err := o.OrderRepository.SelectForAccrualCalc(ctx)
 			if err != nil {
-				logger.Log.Info("error while updating order with new status", zap.Error(err))
+				// check if no new orders with status "INVALID" or "PROCESSING" available
+				if errors.Is(err, sql.ErrNoRows) {
+					time.Sleep(1 * time.Second)
+					return
+				}
+				logger.Log.Error("error while obtaining orders for accrual calcs", zap.Error(err))
 				return
 			}
-		}
+			var numJobs = len(orders)
+			var wg sync.WaitGroup
+			newOrdersChan := make(chan order.Order, numJobs) // chan for jobs
+			results := make(chan order.Order, numJobs)       // chan for results
 
-		wg.Wait()
+			// Worker pool
+			for w := 1; w <= cfg.FlagRateLimit; w++ {
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					processOrders(newOrdersChan, results, cfg)
+				}()
+			}
+
+			// Send selected new orders to jobs (newOrdersChan) chan
+			for _, v := range orders {
+				newOrdersChan <- v
+			}
+			close(newOrdersChan)
+
+			// Read from results chan
+			for a := 1; a <= numJobs; a++ {
+				order := <-results
+				// If recievied order status not expected - resend order to jobs chan
+				if order.Status != statusInvalid && order.Status != statusProcessed {
+					newOrdersChan <- order
+					return
+				}
+				err = o.OrderRepository.UpdateOrderAndBalance(ctx, &order)
+				if err != nil {
+					logger.Log.Info("error while updating order with new status", zap.Error(err))
+					return
+				}
+			}
+
+			wg.Wait()
 		}()
 	}
 }
